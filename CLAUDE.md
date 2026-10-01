@@ -27,7 +27,6 @@ Never run `composer` or `bin/console` on the host. The host has a different PHP 
 | `make cs-fix` / `make cs-check` | Fix / check coding standards |
 | `make phpstan` | PHPStan level 7 + architecture rules |
 | `make lint` | `cs-check` + `phpstan` (the CI gate) |
-| `make audit` | `composer audit` |
 | `make worker` | Consume `async` in the foreground (the `worker` service does this in the background) |
 | `make stripe-listen` | Forward Stripe webhooks (see Stripe below) |
 
@@ -105,7 +104,7 @@ or in a git-ignored `compose.override.yaml`.
 
 ## CI
 
-`.github/workflows/ci.yaml` starts the same Compose `php` + `database` services and runs `make vendor`, `make lint`, `make audit`, `make test`. `make lint` passing locally means CI lint passes. Pre-commit (`.pre-commit-config.yaml`) runs `make cs-fix` and `make phpstan`; activate with `brew install pre-commit && pre-commit install`.
+`.github/workflows/ci.yaml` starts the same Compose `php` + `database` services and runs `make vendor`, `make lint`, `make test`. `make lint` passing locally means CI lint passes. Pre-commit (`.pre-commit-config.yaml`) runs `make cs-fix` and `make phpstan`; activate with `brew install pre-commit && pre-commit install`.
 
 ## Stripe
 
