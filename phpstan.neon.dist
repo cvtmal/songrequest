@@ -9,6 +9,9 @@ parameters:
 
 services:
     -
+        class: App\Tests\PHPStan\DoctrineColumnExtension
+        tags: [phpstan.properties.readWriteExtension]
+    -
         class: App\Tests\Architecture\ClassModifiersTest
         tags: [phpat.test]
     -

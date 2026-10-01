@@ -42,6 +42,7 @@
             <file>src/Kernel.php</file>
             <directory>src/DataFixtures</directory>
             <directory>src/Story</directory>
+            <directory>src/Factory</directory>
         </exclude>
 
         <deprecationTrigger>
