@@ -46,6 +46,9 @@ Anything else (services, value objects, form types) is `final` by default.
 - Handlers never reference controllers.
 - Commands never reference entities or repositories — they carry scalars and IDs.
 - Entities never reference controllers, handlers or commands.
+
+## Infrastructure access (checked by `InfrastructureAccessTest`)
+
 - Controllers never use `EntityManagerInterface`.
 - Module code never references `App\Tests`, `App\DataFixtures`, `App\Story` or Foundry.
 

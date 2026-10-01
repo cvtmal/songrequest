@@ -55,10 +55,13 @@ db-test: ## Create and migrate the test database
 	$(CONSOLE) doctrine:database:create --if-not-exists --env=test
 	$(CONSOLE) doctrine:migrations:migrate --no-interaction --allow-no-migration --env=test
 
+# The worker and php-fpm's persistent connections keep sessions open on `app`, which a
+# plain DROP DATABASE rejects. FORCE terminates them; the restart replaces the dead ones.
 db-fresh: ## Drop, recreate and migrate the database
-	$(CONSOLE) doctrine:database:drop --force --if-exists
+	docker compose exec $(if $(CI),-T,) database psql -U app -d postgres -c 'DROP DATABASE IF EXISTS app WITH (FORCE)'
 	$(MAKE) db-create
 	$(MAKE) db-migrate
+	docker compose restart php worker
 
 ## —— Tests ——
 test: db-test ## Run all test suites
