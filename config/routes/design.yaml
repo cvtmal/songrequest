@@ -1,0 +1,51 @@
+# Static reference screens from the Claude Design project "Song Requests".
+# Hard-coded data, no backend. Each {state} is one state of the screen; the
+# templates in templates/design/ read it from the request attributes.
+when@dev: &design
+    design_index:
+        path: /_design
+        controller: Symfony\Bundle\FrameworkBundle\Controller\TemplateController
+        defaults: { template: design/index.html.twig }
+
+    design_guest:
+        path: /_design/guest/{state}
+        controller: Symfony\Bundle\FrameworkBundle\Controller\TemplateController
+        defaults: { template: design/guest.html.twig, state: form }
+        requirements: { state: form|error|limit-reached|sent|duplicate|tipped|closed }
+
+    design_dj_queue:
+        path: /_design/dj-queue/{state}
+        controller: Symfony\Bundle\FrameworkBundle\Controller\TemplateController
+        defaults: { template: design/dj_queue.html.twig, state: queue }
+        requirements: { state: queue|done|paused|muted|empty }
+
+    design_auth:
+        path: /_design/auth/{state}
+        controller: Symfony\Bundle\FrameworkBundle\Controller\TemplateController
+        defaults: { template: design/auth.html.twig, state: signup }
+        requirements: { state: signup|login }
+
+    design_events:
+        path: /_design/events
+        controller: Symfony\Bundle\FrameworkBundle\Controller\TemplateController
+        defaults: { template: design/events.html.twig }
+
+    design_event_settings:
+        path: /_design/event-settings/{state}
+        controller: Symfony\Bundle\FrameworkBundle\Controller\TemplateController
+        defaults: { template: design/event_settings.html.twig, state: open }
+        requirements: { state: open|paused }
+
+    design_plan:
+        path: /_design/plan/{state}
+        controller: Symfony\Bundle\FrameworkBundle\Controller\TemplateController
+        defaults: { template: design/plan.html.twig, state: free }
+        requirements: { state: free|free-yearly|pro }
+
+    design_get_paid:
+        path: /_design/get-paid/{state}
+        controller: Symfony\Bundle\FrameworkBundle\Controller\TemplateController
+        defaults: { template: design/get_paid.html.twig, state: setup }
+        requirements: { state: setup|active }
+
+when@test: *design

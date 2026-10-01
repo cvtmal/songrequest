@@ -1,0 +1,88 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\Architecture;
+
+use App\Shared\Messenger\CommandHandlerInterface;
+use PHPat\Selector\Selector;
+use PHPat\Test\Builder\Rule;
+use PHPat\Test\PHPat;
+
+final class ClassModifiersTest extends ArchitectureRules
+{
+    public function test_controllers_are_final(): Rule
+    {
+        return PHPat::rule()
+            ->classes(self::layer('Controller'))
+            ->should()->beFinal()
+            ->because('Controllers are entry points, not extension points.');
+    }
+
+    public function test_commands_are_final(): Rule
+    {
+        return PHPat::rule()
+            ->classes(self::layer('Command'))
+            ->should()->beFinal()
+            ->because('Commands are plain data carriers.');
+    }
+
+    public function test_commands_are_readonly(): Rule
+    {
+        return PHPat::rule()
+            ->classes(self::layer('Command'))
+            ->should()->beReadonly()
+            ->because('A dispatched command must not change on its way to the handler.');
+    }
+
+    public function test_command_handlers_are_final(): Rule
+    {
+        return PHPat::rule()
+            ->classes(self::layer('CommandHandler'))
+            ->excluding(Selector::isInterface())
+            ->should()->beFinal()
+            ->because('Handlers are composed through the bus, not inherited.');
+    }
+
+    public function test_command_handlers_are_invokable(): Rule
+    {
+        return PHPat::rule()
+            ->classes(self::layer('CommandHandler'))
+            ->excluding(Selector::isInterface())
+            ->should()->beInvokable()
+            ->because('Messenger calls a handler through __invoke().');
+    }
+
+    public function test_exceptions_are_final(): Rule
+    {
+        return PHPat::rule()
+            ->classes(self::layer('Exception'))
+            ->excluding(Selector::isAbstract())
+            ->should()->beFinal()
+            ->because('Each business error is one concrete type with named constructors.');
+    }
+
+    public function test_entities_are_not_final(): Rule
+    {
+        return PHPat::rule()
+            ->classes(self::layer('Entity'))
+            ->shouldNot()->beFinal()
+            ->because('Doctrine needs to proxy entities for lazy loading.');
+    }
+
+    public function test_entities_are_not_readonly(): Rule
+    {
+        return PHPat::rule()
+            ->classes(self::layer('Entity'))
+            ->shouldNot()->beReadonly()
+            ->because('Doctrine hydrates entities by writing their properties.');
+    }
+
+    public function test_command_handler_marker_is_an_interface(): Rule
+    {
+        return PHPat::rule()
+            ->classes(Selector::classname(CommandHandlerInterface::class))
+            ->should()->beInterface()
+            ->because('The marker only exists to be implemented and tagged.');
+    }
+}

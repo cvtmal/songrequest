@@ -1,0 +1,28 @@
+includes:
+    - vendor/phpat/phpat/extension.neon
+
+parameters:
+    level: 7
+    paths:
+        - src
+        - tests
+
+services:
+    -
+        class: App\Tests\Architecture\ClassModifiersTest
+        tags: [phpat.test]
+    -
+        class: App\Tests\Architecture\LayerIsolationTest
+        tags: [phpat.test]
+    -
+        class: App\Tests\Architecture\InheritanceContractsTest
+        tags: [phpat.test]
+    -
+        class: App\Tests\Architecture\InfrastructureAccessTest
+        tags: [phpat.test]
+    -
+        class: App\Tests\Architecture\CqrsContractsTest
+        tags: [phpat.test]
+    -
+        class: App\Tests\Architecture\ModuleBoundariesTest
+        tags: [phpat.test]

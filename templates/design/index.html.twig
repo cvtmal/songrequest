@@ -1,0 +1,75 @@
+{% extends 'base.html.twig' %}
+
+{# Gallery of the reference screens, laid out like the Claude Design canvas. Dev only. #}
+
+{% block title %}Design reference · Song Request{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .gallery { padding: 48px 40px 64px; display: flex; flex-direction: column; gap: 56px; }
+        .gallery-section { display: flex; flex-direction: column; gap: 28px; }
+        .gallery-intro { display: flex; flex-direction: column; gap: 6px; max-width: 640px; }
+        .gallery-grid { display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start; }
+        .gallery-screen { display: flex; flex-direction: column; gap: 12px; width: 390px; }
+        .gallery-label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+        .gallery-frame { width: 390px; height: 820px; border: 0; border-radius: 44px; box-shadow: var(--shadow-md); background: var(--color-bg); }
+        .gallery-states { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; }
+        @media (max-width: 480px) {
+            .gallery { padding: 32px 16px; }
+            .gallery-screen, .gallery-frame { width: 100%; }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% set sections = [
+        {
+            kicker: 'Song requests · the night',
+            title: 'Guest and DJ, side by side',
+            intro: 'A guest sends a request; it lands in the DJ’s queue. Duplicates become +1 votes.',
+            screens: [
+                {id: '1a', label: 'Guest · after scanning the QR code', route: 'design_guest', states: ['form', 'error', 'limit-reached', 'sent', 'duplicate', 'tipped', 'closed']},
+                {id: '1b', label: 'DJ · queue on the booth phone', route: 'design_dj_queue', states: ['queue', 'done', 'paused', 'muted', 'empty']},
+            ],
+        },
+        {
+            kicker: 'DJ account',
+            title: 'Sign up, events, plan, payouts',
+            intro: 'Everything a DJ touches outside the night itself. Settings on 2c drive the guest flow on 1a.',
+            screens: [
+                {id: '2a', label: 'Sign up / log in', route: 'design_auth', states: ['signup', 'login']},
+                {id: '2b', label: 'Your events', route: 'design_events', states: []},
+                {id: '2c', label: 'Event · QR code and limits', route: 'design_event_settings', states: ['open', 'paused']},
+                {id: '2d', label: 'Plan · subscribe with TWINT or card', route: 'design_plan', states: ['free', 'free-yearly', 'pro']},
+                {id: '2e', label: 'Get paid · bank details for tips', route: 'design_get_paid', states: ['setup', 'active']},
+            ],
+        },
+    ] %}
+
+    <main class="gallery">
+        {% for section in sections %}
+            <section class="gallery-section">
+                <div class="gallery-intro">
+                    <div class="card-kicker">{{ section.kicker }}</div>
+                    <h2 class="m-0">{{ section.title }}</h2>
+                    <p class="text-muted m-0">{{ section.intro }}</p>
+                </div>
+                <div class="gallery-grid">
+                    {% for screen in section.screens %}
+                        <div class="gallery-screen" id="{{ screen.id }}">
+                            <div class="gallery-label"><span class="tag tag-outline">{{ screen.id }}</span><span class="text-muted">{{ screen.label }}</span></div>
+                            <iframe class="gallery-frame" name="frame-{{ screen.id }}" src="{{ path(screen.route) }}" title="{{ screen.label }}" loading="lazy"></iframe>
+                            {% if screen.states is not empty %}
+                                <div class="gallery-states">
+                                    {% for state in screen.states %}
+                                        <a href="{{ path(screen.route, {state: state}) }}" target="frame-{{ screen.id }}">{{ state }}</a>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endfor %}
+    </main>
+{% endblock %}

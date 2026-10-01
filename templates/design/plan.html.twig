@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+{% import '_macros/icons.html.twig' as icons %}
+
+{# 2d · Plan: subscribe with TWINT or card. States: free (monthly prices), free-yearly, pro. #}
+
+{% block title %}Your plan · Song Request{% endblock %}
+
+{% block body %}
+    {% set state = app.request.attributes.get('state') %}
+    {% set pro = state == 'pro' %}
+    {% set yearly = state == 'free-yearly' %}
+    {% set features = ['Unlimited requests', 'TWINT tips from guests', 'Minimum tip and skip-the-line', 'Up to 10 events at once'] %}
+
+    <main class="page">
+        <div class="stack-xs">
+            <h3 class="m-0">Your plan</h3>
+            <p class="intro">{{ pro ? 'You’re on Pro. Thanks for supporting the app.' : 'Upgrade to take tips and remove the request limit.' }}</p>
+        </div>
+
+        <nav class="seg seg-fill" aria-label="Billing period">
+            <a class="seg-opt" href="{{ path('design_plan', {state: pro ? 'pro' : 'free'}) }}"{% if not yearly %} aria-current="true"{% endif %}>Monthly</a>
+            <a class="seg-opt" href="{{ path('design_plan', {state: 'free-yearly'}) }}"{% if yearly %} aria-current="true"{% endif %}>Yearly · 2 months free</a>
+        </nav>
+
+        <div class="card card-lg elev-md">
+            <div class="card-head">
+                <div class="card-kicker">Pro</div>
+                {% if pro %}<span class="tag tag-accent">Current plan</span>{% endif %}
+            </div>
+            <div class="price">
+                <span class="price-amount">{{ yearly ? 'CHF 90' : 'CHF 9' }}</span>
+                <span class="price-per">{{ yearly ? 'per year' : 'per month' }}</span>
+            </div>
+            <div class="check-list">
+                {% for f in features %}
+                    <div>{{ icons.icon('check') }}<span>{{ f }}</span></div>
+                {% endfor %}
+            </div>
+            {% if pro %}
+                <div class="note">Renews 3 Nov · paid with TWINT</div>
+                {# Real page: redirect to the Stripe Customer Portal. #}
+                <a class="btn btn-secondary btn-touch btn-tall btn-wide" href="{{ path('design_plan') }}">Manage subscription</a>
+            {% else %}
+                {# Real page: POST that redirects to Stripe Checkout (subscription mode). #}
+                <a class="btn btn-primary btn-touch btn-lg btn-wide" href="{{ path('design_plan', {state: 'pro'}) }}">Subscribe with TWINT or card</a>
+                <div class="hint">Opens secure Stripe checkout. Cancel anytime.</div>
+            {% endif %}
+        </div>
+
+        <div class="card card-lg card-outline">
+            <div class="card-head">
+                <div class="card-kicker kicker-muted">Free</div>
+                {% if not pro %}<span class="tag tag-neutral">Current plan</span>{% endif %}
+            </div>
+            <div class="plan-summary">100 requests a month · no tips</div>
+            {% if not pro %}
+                <div class="stack-xs">
+                    <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="64" aria-label="Requests used this month"><span style="width: 64%"></span></div>
+                    <div class="hint">64 of 100 used this month</div>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+{% import '_macros/icons.html.twig' as icons %}
+
+{# 1b · DJ queue on the booth phone. States: queue, done, paused, muted, empty. #}
+
+{% block title %}Requests · Kaufleuten{% endblock %}
+
+{% block body %}
+    {% set state = app.request.attributes.get('state') %}
+    {% set live = state == 'empty' ? [] : [
+        {title: 'Dreams', artist: 'Fleetwood Mac', votes: 6, meta: 'Lea · 14 min ago', tip: 10, is_new: false},
+        {title: 'Padam Padam', artist: 'Kylie Minogue', votes: 4, meta: '9 min ago', tip: 0, is_new: false},
+        {title: 'Get Lucky', artist: 'Daft Punk', votes: 3, meta: 'Nico · 6 min ago', tip: 0, is_new: false},
+        {title: 'Mr. Brightside', artist: 'The Killers', votes: 1, meta: 'just now', tip: 0, is_new: true},
+    ]|merge(state == 'muted' or state == 'empty' ? [] : [
+        {title: 'Bilder im Kopf', artist: 'Sido', votes: 1, meta: '2 min ago', tip: 0, is_new: false},
+    ]) %}
+    {% set done = state == 'empty' ? [] : [
+        {title: 'Midnight City', artist: 'M83', votes: 2, meta: 'Sam · Played', tip: 5, is_new: false},
+        {title: 'Macarena', artist: 'Los del Río', votes: 1, meta: 'Skipped', tip: 0, is_new: false},
+    ] %}
+    {% set show_done = state == 'done' %}
+    {% set open = state != 'paused' %}
+    {% set items = show_done ? done : live %}
+
+    <main class="page">
+        <div class="page-head">
+            <div class="page-title">
+                <div class="page-sub">Kaufleuten · Fri 3 Oct</div>
+                <h3>Requests</h3>
+            </div>
+            {# Real page: a POST that opens/pauses the event. #}
+            <a class="btn btn-secondary btn-pill" href="{{ path('design_dj_queue', {state: open ? 'paused' : 'queue'}) }}">
+                <span class="status-dot{{ open ? ' is-live' }}"></span>{{ open ? 'Open' : 'Paused' }}
+            </a>
+        </div>
+
+        <nav class="seg seg-fill" aria-label="Requests">
+            <a class="seg-opt" href="{{ path('design_dj_queue') }}"{% if not show_done %} aria-current="page"{% endif %}>Queue · {{ live|length }}</a>
+            <a class="seg-opt" href="{{ path('design_dj_queue', {state: 'done'}) }}"{% if show_done %} aria-current="page"{% endif %}>Done · {{ done|length }}</a>
+        </nav>
+
+        <div class="list">
+            {% for r in items %}
+                <div class="queue-item">
+                    <div class="queue-votes">
+                        {{ icons.icon('caret-up', 14, 22) }}
+                        <span>{{ r.votes }}</span>
+                    </div>
+                    <div class="queue-body">
+                        <div>
+                            <div class="queue-title">{{ r.title }}</div>
+                            <div class="list-row-sub">{{ r.artist }}</div>
+                        </div>
+                        <div class="queue-meta">
+                            {% if r.is_new %}<span class="tag tag-outline">New</span>{% endif %}
+                            {% if r.tip > 0 %}<span class="tag tag-accent">CHF {{ r.tip }} tip</span>{% endif %}
+                            <span>{{ r.meta }}</span>
+                        </div>
+                        {% if not show_done %}
+                            <div class="queue-actions">
+                                <button type="button" class="btn btn-primary">{{ icons.icon('check', 15) }}Played</button>
+                                <button type="button" class="btn btn-secondary">Skip</button>
+                                <button type="button" class="btn btn-secondary btn-icon" aria-label="Mute guest" title="Mute this guest">{{ icons.icon('prohibit', 16, 18) }}</button>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty">Nothing here yet.</div>
+            {% endfor %}
+        </div>
+
+        {% if state == 'muted' %}
+            <div class="hint">1 guest muted — their requests are dropped quietly.</div>
+        {% endif %}
+    </main>
+{% endblock %}

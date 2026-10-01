@@ -1,0 +1,206 @@
+/*
+ * Song Request theme on top of Nocturne (nocturne.css): a green accent on a
+ * green-grey ground, plus the screen-level components the app is built from.
+ * The reference screens live at /_design (dev only).
+ */
+
+:root {
+  --color-bg: #121413;
+  --color-surface: #1d201f;
+  --color-text: #eef2ef;
+  --color-accent: #34c97e;
+  --color-divider: color-mix(in srgb, #eef2ef 14%, transparent);
+
+  --color-accent-100: #e6fbef; --color-accent-200: #c3f4d8; --color-accent-300: #93e9b8;
+  --color-accent-400: #5fdc98; --color-accent-500: #34c97e; --color-accent-600: #26a566;
+  --color-accent-700: #1d7d4e; --color-accent-800: #155638; --color-accent-900: #0e3424;
+
+  --color-neutral-100: #f2f4f3; --color-neutral-200: #e2e5e3; --color-neutral-300: #c9cdcb;
+  --color-neutral-400: #a9aeab; --color-neutral-500: #8a8f8c; --color-neutral-600: #6c716e;
+  --color-neutral-700: #515553; --color-neutral-800: #383b3a; --color-neutral-900: #252827;
+
+  --shadow-sm: 0 0 0 1px #383b3a;
+  --shadow-md: 0 0 0 1px #515553, 0 6px 18px rgba(0,0,0,0.55);
+
+  /* The fading row rule, reused by every list on a screen. */
+  --rule-fade: linear-gradient(to right,
+    transparent, var(--color-divider) 48px,
+    var(--color-divider) calc(100% - 48px), transparent) no-repeat bottom / 100% 1px;
+}
+
+:root { color-scheme: dark; }
+a:hover { color: var(--color-accent-400); }
+input::placeholder { color: var(--color-neutral-600); }
+
+/* — page shell — */
+/* Every screen is a phone-width column. Guest-facing and auth screens get the
+   accent glow in the top-left corner. */
+body {
+  min-height: 100dvh;
+  background: linear-gradient(180deg, var(--color-surface), var(--color-bg) 280px) no-repeat, var(--color-bg);
+}
+body.glow {
+  background:
+    radial-gradient(120% 360px at 0% 0%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 70%) no-repeat,
+    linear-gradient(180deg, var(--color-surface), var(--color-bg) 370px) no-repeat,
+    var(--color-bg);
+}
+.page {
+  max-width: 440px; margin-inline: auto;
+  padding: 16px 20px 32px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.page-wide { padding-inline: 24px; gap: 24px; }
+.page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.page-title { display: flex; flex-direction: column; gap: 2px; }
+.page-title > :is(h1, h2, h3) { margin: 0; }
+.page-sub { font-size: 13px; color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+.page-kicker { font-size: 15px; color: var(--color-neutral-400); }
+
+.display { margin: 0; font-size: 38px; line-height: 1.05; text-wrap: balance; }
+.lede { margin: 0; font-size: 16px; color: var(--color-neutral-300); text-wrap: pretty; }
+.intro { margin: 0; font-size: 14px; text-wrap: pretty; color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+.hint { font-size: 12px; text-wrap: pretty; color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+.hint-center { text-align: center; }
+.note { font-size: 13px; text-wrap: pretty; color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+.section-label { margin: 0 0 4px; color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+.link-accent { font-size: 13px; color: var(--color-accent-300); }
+
+/* — stacks — */
+.stack { display: flex; flex-direction: column; gap: 14px; }
+.stack-2xs { display: flex; flex-direction: column; gap: 2px; }
+.stack-xs { display: flex; flex-direction: column; gap: 6px; }
+.stack-sm { display: flex; flex-direction: column; gap: 10px; }
+.stack-lg { display: flex; flex-direction: column; gap: 20px; }
+.stack-xl { display: flex; flex-direction: column; gap: 24px; }
+
+/* — touch-size controls — */
+.field-lg > label { font-size: 13px; }
+.field-lg .input { min-height: 50px; font-size: 16px; padding: 10px 14px; }
+.field-optional { color: var(--color-neutral-600); }
+.form-error { font-size: 13px; color: var(--color-accent-300); }
+
+.btn-touch { min-height: 44px; border-radius: var(--radius-lg); }
+.btn-lg { min-height: 52px; font-size: 16px; }
+.btn-tall { min-height: 48px; }
+.btn-wide { width: 100%; }
+.btn-pill { min-height: 44px; border-radius: 22px; padding: 0 16px; }
+.btn-round { width: 44px; height: 44px; padding: 0; border-radius: 22px; }
+.btn-start { align-self: flex-start; }
+.btn-voted { background: var(--color-accent-800); color: var(--color-accent-100); }
+.btn-voted:hover { background: var(--color-accent-700); }
+.btn-vote { min-width: 64px; }
+.btn-row { display: flex; gap: 8px; width: 100%; }
+.btn-row > .btn:not(.btn-icon) { flex: 1; }
+
+/* Segmented control stretched to the column; options may be links (tabs)
+   as well as radios, so aria-current mirrors the checked style. */
+.seg-fill { display: flex; width: 100%; }
+.seg-fill > .seg-opt { flex: 1; justify-content: center; min-height: 44px; }
+.seg-lg > .seg-opt { min-height: 46px; font-size: 15px; }
+a.seg-opt { color: inherit; text-decoration: none; }
+.seg-opt[aria-current] { color: var(--color-accent); box-shadow: inset 0 0 0 1px var(--color-accent); }
+a.seg-opt:not([aria-current]):hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+
+/* — status — */
+.status-dot { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--color-neutral-600); }
+.status-dot.is-live { background: var(--color-accent); box-shadow: 0 0 8px var(--color-accent); }
+.live-label { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--color-accent-300); }
+.live-label .status-dot { width: 7px; height: 7px; box-shadow: 0 0 10px var(--color-accent); }
+.ok-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-accent-300); }
+
+/* — cards — */
+.card-lg { padding: 18px; gap: 12px; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+.card-lg.elev-md { box-shadow: var(--shadow-md); }
+.card-outline { background: transparent; }
+.card-head { display: flex; align-items: center; justify-content: space-between; }
+.card-start { align-items: flex-start; }
+
+/* — lists with fading row rules — */
+.list { display: flex; flex-direction: column; }
+.list-row {
+  display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 0;
+  background: var(--rule-fade);
+}
+.list-row-compact { min-height: 0; }
+.list-row-stacked { flex-direction: column; align-items: stretch; gap: 10px; padding: 16px 0; }
+.list-row-main { flex: 1; min-width: 0; }
+.list-row-title { font-size: 16px; font-weight: 500; }
+.list-row-title-sm { font-size: 15px; font-weight: 500; }
+.list-row-title.is-past { color: var(--color-neutral-300); }
+.list-row-sub { font-size: 13px; color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+.truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* — stepper — */
+.stepper { display: flex; align-items: center; gap: 4px; }
+.stepper-value { min-width: 28px; text-align: center; font-size: 17px; font-weight: 500; }
+
+/* — money and plans — */
+.price { display: flex; align-items: baseline; gap: 6px; }
+.price-amount { font-size: 34px; font-weight: 500; letter-spacing: -0.02em; }
+.price-per { font-size: 14px; color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+.check-list { display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: var(--color-neutral-200); }
+.check-list > div { display: flex; gap: 10px; align-items: flex-start; }
+.check-list svg { flex: none; margin-top: 4px; color: var(--color-accent); }
+.plan-summary { font-size: 14px; color: var(--color-neutral-300); }
+.meter { height: 4px; border-radius: 2px; background: var(--color-neutral-800); overflow: hidden; }
+.meter > span { display: block; height: 100%; background: var(--color-accent); }
+
+/* — onboarding steps — */
+.steps { display: flex; flex-direction: column; gap: 16px; }
+.step { display: flex; gap: 14px; align-items: flex-start; }
+.step-num {
+  width: 28px; height: 28px; flex: none; border-radius: 50%;
+  border: 1px solid var(--color-accent); color: var(--color-accent-300);
+  display: grid; place-items: center; font-size: 13px;
+}
+
+/* — QR code — */
+.qr { width: 148px; height: 148px; border-radius: var(--radius-md); }
+.qr-placeholder {
+  border: 1px dashed var(--color-neutral-700); color: var(--color-neutral-500);
+  display: grid; place-items: center; font-size: 12px;
+}
+
+/* — guest confirmation — */
+.confirm-mark {
+  width: 64px; height: 64px; border-radius: 50%;
+  border: 1px solid var(--color-accent); color: var(--color-accent);
+  display: grid; place-items: center;
+  box-shadow: 0 0 28px color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+
+/* — DJ queue — */
+.queue-item { display: flex; gap: 14px; padding: 14px 0; background: var(--rule-fade); }
+.queue-votes {
+  width: 40px; flex: none; padding-top: 2px;
+  display: flex; flex-direction: column; align-items: center;
+  color: var(--color-accent-300);
+}
+.queue-votes > span { font-size: 20px; font-weight: 500; line-height: 1.1; }
+.queue-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.queue-title { font-size: 16px; font-weight: 500; line-height: 1.25; }
+.queue-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; color: var(--color-neutral-500); }
+.queue-meta .tag { padding: 1px 8px; }
+.queue-actions { display: flex; gap: 8px; padding-top: 4px; }
+.queue-actions .btn { min-height: 40px; border-radius: var(--radius-lg); }
+.queue-actions .btn-icon { width: 44px; height: 40px; }
+.empty { padding: 48px 0; font-size: 15px; color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+
+/* — screen specifics — */
+.m-0 { margin: 0; }
+.page-loose { gap: 24px; }
+.auth { padding-top: 56px; gap: 28px; }
+.auth-switch { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--color-neutral-400); }
+.auth-switch .btn { font-size: 14px; }
+.back-link { gap: 4px; }
+.event-title { font-size: 20px; }
+.kicker-muted { color: var(--color-neutral-400); }
+.list-row-flush { padding-block: 0; }
+.payout-card { gap: 6px; font-size: 15px; }
+ol.steps { list-style: none; margin: 0; padding: 0; }
+.tip-card { padding: 20px; gap: 16px; }
+.state-closed { padding-top: 40px; }
+.closed-title { margin: 0; font-size: 34px; }
+.state-sent { padding-top: 24px; }
+.queue-preview { gap: 8px; padding-top: 8px; }

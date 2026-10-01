@@ -1,0 +1,12 @@
+{# Phosphor-style line icons (256 grid). Usage: {{ icons.icon('check', 14) }} #}
+{% macro icon(name, size = 14, stroke = 20) %}
+    {%- set paths = {
+        plus: '<path d="M128 40v176M40 128h176"/>',
+        minus: '<path d="M40 128h176"/>',
+        check: '<path d="M40 144l56 56L216 72"/>',
+        'caret-left': '<path d="M160 208L80 128l80-80"/>',
+        'caret-up': '<path d="M56 160l72-72 72 72"/>',
+        prohibit: '<circle cx="128" cy="128" r="88"/><path d="M66 66l124 124"/>',
+    } -%}
+    <svg width="{{ size }}" height="{{ size }}" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="{{ stroke }}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{{ paths[name]|raw }}</svg>
+{%- endmacro %}

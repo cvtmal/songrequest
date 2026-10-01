@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+{% import '_macros/icons.html.twig' as icons %}
+
+{# 2b · The DJ's events: tonight, coming up, past. #}
+
+{% block title %}Events · Song Request{% endblock %}
+
+{% block body %}
+    {% set upcoming = [
+        {name: 'Hochzeit Meier', when: 'Sat 11 Oct · Bern', tag: 'Wedding'},
+        {name: 'Plaza Club', when: 'Fri 17 Oct · Zürich', tag: 'Club'},
+    ] %}
+    {% set past = [
+        {name: 'Rote Fabrik', when: 'Sat 27 Sep', requests: 41},
+        {name: 'Geburtstag Lea', when: 'Sat 20 Sep', requests: 18},
+    ] %}
+
+    <main class="page">
+        <div class="page-head">
+            <div class="page-title">
+                <div class="page-sub">DJ Mira</div>
+                <h3>Events</h3>
+            </div>
+            <a class="btn btn-primary btn-pill" href="#">{{ icons.icon('plus', 15) }}New event</a>
+        </div>
+
+        <div class="card card-lg">
+            <div class="live-label"><span class="status-dot is-live"></span>Tonight</div>
+            <div class="stack-2xs">
+                <div class="card-title event-title">Kaufleuten</div>
+                <div class="page-sub">Fri 3 Oct · 22:00 – 04:00</div>
+            </div>
+            <div class="btn-row">
+                <a class="btn btn-primary btn-touch" href="{{ path('design_dj_queue') }}">Open queue · 5</a>
+                <a class="btn btn-secondary btn-touch" href="{{ path('design_event_settings') }}">QR &amp; settings</a>
+            </div>
+        </div>
+
+        <section class="list">
+            <h6 class="section-label">Coming up</h6>
+            {% for e in upcoming %}
+                <div class="list-row">
+                    <div class="list-row-main">
+                        <div class="list-row-title">{{ e.name }}</div>
+                        <div class="list-row-sub">{{ e.when }}</div>
+                    </div>
+                    <span class="tag tag-neutral">{{ e.tag }}</span>
+                </div>
+            {% endfor %}
+        </section>
+
+        <section class="list">
+            <h6 class="section-label">Past</h6>
+            {% for e in past %}
+                <div class="list-row">
+                    <div class="list-row-main">
+                        <div class="list-row-title is-past">{{ e.name }}</div>
+                        <div class="list-row-sub">{{ e.when }}</div>
+                    </div>
+                    <span class="list-row-sub">{{ e.requests }} requests</span>
+                </div>
+            {% endfor %}
+        </section>
+    </main>
+{% endblock %}

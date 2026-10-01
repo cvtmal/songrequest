@@ -1,0 +1,63 @@
+services:
+  php:
+    build: ./docker/php
+    image: songrequest-php:dev
+    volumes:
+      - .:/var/www/html
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      database:
+        condition: service_healthy
+
+  worker:
+    image: songrequest-php:dev
+    command: php bin/console messenger:consume async --time-limit=3600 --memory-limit=128M -vv
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      database:
+        condition: service_healthy
+      php:
+        condition: service_started
+
+  nginx:
+    image: nginx:stable-alpine
+    ports:
+      - "${NGINX_HOST_PORT:-80}:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./public:/var/www/html/public:ro
+    depends_on:
+      - php
+
+  database:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "app", "-d", "app"]
+      interval: 5s
+      retries: 10
+    ports:
+      - "${DB_HOST_PORT:-5432}:5432"
+    volumes:
+      - database_data:/var/lib/postgresql/data
+
+  mailpit:
+    image: axllent/mailpit:v1.31.3
+    ports:
+      - "${MAILPIT_HOST_PORT:-8025}:8025"
+
+  stripe:
+    image: stripe/stripe-cli
+    profiles: [stripe]
+    environment:
+      - STRIPE_API_KEY
+    command: listen --forward-to http://nginx/webhooks/stripe
+
+volumes:
+  database_data:

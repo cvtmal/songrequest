@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+{% import '_macros/icons.html.twig' as icons %}
+
+{# 2e · Get paid: Stripe Connect onboarding for tips. States: setup, active. #}
+
+{% block title %}Get paid · Song Request{% endblock %}
+
+{% block body %}
+    {% set active = app.request.attributes.get('state') == 'active' %}
+    {% set steps = [
+        {title: 'Your details', body: 'Name, date of birth, address.'},
+        {title: 'Bank account', body: 'Your IBAN — tips are paid out here.'},
+        {title: 'Photo of your ID', body: 'Required by law to prevent fraud. Only Stripe sees it.'},
+    ] %}
+
+    <main class="page page-loose">
+        <div class="stack-xs">
+            <h3 class="m-0">Get paid</h3>
+            <p class="intro">Guests tip with TWINT. The money goes straight to your bank account — we never hold it.</p>
+        </div>
+
+        {% if active %}
+            <div class="stack-lg">
+                <div class="card card-lg payout-card">
+                    <div class="ok-label">{{ icons.icon('check') }}Payouts active</div>
+                    <div>UBS · CH•• •••• 4821</div>
+                    <div class="note">Paid out every Monday</div>
+                </div>
+                <div class="stack-xs">
+                    <h6 class="section-label m-0">Tips this month</h6>
+                    <div class="price">
+                        <span class="price-amount">CHF 185</span>
+                        <span class="price-per">from 23 guests</span>
+                    </div>
+                </div>
+                {# Real page: back into Stripe Connect onboarding / account update. #}
+                <a class="btn btn-secondary btn-touch btn-tall btn-wide" href="{{ path('design_get_paid') }}">Change bank details</a>
+            </div>
+        {% else %}
+            <div class="stack-lg">
+                <ol class="steps">
+                    {% for s in steps %}
+                        <li class="step">
+                            <span class="step-num">{{ loop.index }}</span>
+                            <div class="stack-2xs">
+                                <div class="list-row-title-sm">{{ s.title }}</div>
+                                <div class="note">{{ s.body }}</div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ol>
+                <div class="note">About 5 minutes. You don't need a company or TWINT yourself.</div>
+                {# Real page: POST that creates the Connect account link and redirects to Stripe. #}
+                <a class="btn btn-primary btn-touch btn-lg btn-wide" href="{{ path('design_get_paid', {state: 'active'}) }}">Enter your bank details</a>
+                <div class="hint">Handled securely by Stripe.</div>
+            </div>
+        {% endif %}
+    </main>
+{% endblock %}

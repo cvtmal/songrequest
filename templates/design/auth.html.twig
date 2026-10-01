@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{# 2a · DJ sign up / log in. States: signup, login. #}
+
+{% block title %}{{ app.request.attributes.get('state') == 'login' ? 'Log in' : 'Sign up' }} · Song Request{% endblock %}
+{% block body_class %}glow{% endblock %}
+
+{% block body %}
+    {% set signup = app.request.attributes.get('state') == 'signup' %}
+
+    <main class="page page-wide auth">
+        <div class="stack-sm">
+            <h1 class="display">{{ signup ? 'Take requests tonight' : 'Welcome back' }}</h1>
+            <p class="lede">{{ signup ? 'Free to start. No card needed.' : 'Log in to see your queue.' }}</p>
+        </div>
+
+        <div class="stack">
+            {% if signup %}
+                <div class="field field-lg">
+                    <label for="a-name">DJ name</label>
+                    <input id="a-name" name="name" class="input" placeholder="Shown to your guests">
+                </div>
+            {% endif %}
+            <div class="field field-lg">
+                <label for="a-email">Email</label>
+                <input id="a-email" name="email" type="email" class="input" placeholder="you@example.ch" autocomplete="email">
+            </div>
+            <div class="field field-lg">
+                <label for="a-pw">Password</label>
+                <input id="a-pw" name="password" type="password" class="input" placeholder="At least 10 characters" autocomplete="{{ signup ? 'new-password' : 'current-password' }}">
+            </div>
+            <button type="button" class="btn btn-primary btn-touch btn-lg btn-wide">{{ signup ? 'Create account' : 'Log in' }}</button>
+            {% if not signup %}
+                <a class="btn btn-ghost btn-touch btn-start" href="#">Forgot password?</a>
+            {% endif %}
+        </div>
+
+        <div class="auth-switch">
+            <span>{{ signup ? 'Already have an account?' : 'New here?' }}</span>
+            <a class="btn btn-ghost btn-touch" href="{{ path('design_auth', {state: signup ? 'login' : 'signup'}) }}">{{ signup ? 'Log in' : 'Create account' }}</a>
+        </div>
+    </main>
+{% endblock %}

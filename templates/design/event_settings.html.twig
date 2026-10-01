@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+{% import '_macros/icons.html.twig' as icons %}
+
+{# 2c · Event settings: permanent QR code and request limits. States: open, paused. #}
+
+{% block title %}Kaufleuten · Song Request{% endblock %}
+
+{% block body %}
+    {% set open = app.request.attributes.get('state') == 'open' %}
+
+    <main class="page">
+        <a class="btn btn-ghost btn-touch btn-start back-link" href="{{ path('design_events') }}">{{ icons.icon('caret-left', 15) }}Events</a>
+        <div class="page-title">
+            <h3>Kaufleuten</h3>
+            <div class="page-sub">Fri 3 Oct · 22:00 – 04:00</div>
+        </div>
+
+        <div class="card card-lg card-start">
+            <div class="qr qr-placeholder">QR code</div>
+            <div class="stack-2xs">
+                <div class="list-row-title-sm">Your permanent QR code</div>
+                <div class="note">Print it once — it always opens tonight's event.</div>
+                <div class="link-accent">songreq.ch/mira</div>
+            </div>
+            <div class="btn-row">
+                <a class="btn btn-secondary btn-touch" href="#">Download PDF</a>
+                <button type="button" class="btn btn-secondary btn-touch">Share link</button>
+            </div>
+        </div>
+
+        <div class="list">
+            <div class="list-row list-row-flush">
+                <div class="list-row-main">
+                    <div class="list-row-title-sm">Taking requests</div>
+                    <div class="list-row-sub">Pause anytime during the set</div>
+                </div>
+                <a class="btn btn-secondary btn-pill" href="{{ path('design_event_settings', {state: open ? 'paused' : 'open'}) }}">
+                    <span class="status-dot{{ open ? ' is-live' }}"></span>{{ open ? 'Open' : 'Paused' }}
+                </a>
+            </div>
+            <div class="list-row list-row-flush">
+                <div class="list-row-main">
+                    <div class="list-row-title-sm">Requests per guest</div>
+                    <div class="list-row-sub">5 min between each</div>
+                </div>
+                <div class="stepper">
+                    <button type="button" class="btn btn-secondary btn-round" aria-label="Fewer">{{ icons.icon('minus') }}</button>
+                    <span class="stepper-value">3</span>
+                    <button type="button" class="btn btn-secondary btn-round" aria-label="More">{{ icons.icon('plus') }}</button>
+                </div>
+            </div>
+            <div class="list-row list-row-stacked">
+                <div>
+                    <div class="list-row-title-sm">Requests for the whole night</div>
+                    <div class="list-row-sub">Stops new requests when reached</div>
+                </div>
+                <div class="seg seg-fill" role="radiogroup" aria-label="Requests for the whole night">
+                    {% for limit in ['50', '100', 'No limit'] %}
+                        <label class="seg-opt"><input type="radio" name="event_limit" value="{{ limit }}"{% if limit == '100' %} checked{% endif %}>{{ limit }}</label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-secondary btn-touch btn-tall btn-wide">End event</button>
+    </main>
+{% endblock %}

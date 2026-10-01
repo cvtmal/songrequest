@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+{% import '_macros/icons.html.twig' as icons %}
+
+{# 1a · Guest, after scanning the QR code. States: form, error, limit-reached, sent, duplicate, tipped, closed. #}
+
+{% block title %}DJ Mira · Song Request{% endblock %}
+{% block body_class %}glow{% endblock %}
+
+{% block body %}
+    {% set state = app.request.attributes.get('state') %}
+    {% set cap = 3 %}
+    {% set queue = [
+        {title: 'Dreams', artist: 'Fleetwood Mac', votes: state == 'limit-reached' ? 7 : 6, voted: state == 'limit-reached'},
+        {title: 'Padam Padam', artist: 'Kylie Minogue', votes: 4, voted: false},
+        {title: 'Get Lucky', artist: 'Daft Punk', votes: 3, voted: false},
+        {title: 'Bilder im Kopf', artist: 'Sido', votes: 1, voted: false},
+    ] %}
+    {% set last_title = state == 'duplicate' ? 'Dreams' : 'Mr. Brightside' %}
+
+    <main class="page page-wide">
+        <div class="page-kicker">DJ Mira</div>
+
+        {% if state == 'closed' %}
+            <div class="stack-sm state-closed">
+                <h2 class="closed-title">Requests are closed for now</h2>
+                <p class="lede text-muted">Mira has stopped taking requests. Enjoy the set — check back later.</p>
+            </div>
+
+        {% elseif state in ['form', 'error', 'limit-reached'] %}
+            <div class="stack-lg">
+                <h1 class="display">What should I play next?</h1>
+
+                {# Real page: a Symfony form posting to the event; 422 re-render on errors. #}
+                <div class="stack">
+                    <div class="field field-lg">
+                        <label for="g-title">Song</label>
+                        <input id="g-title" name="title" class="input" placeholder="e.g. Dreams"
+                            {%- if state == 'error' %} aria-invalid="true" aria-describedby="g-title-error"{% endif %}>
+                    </div>
+                    <div class="field field-lg">
+                        <label for="g-artist">Artist</label>
+                        <input id="g-artist" name="artist" class="input" placeholder="e.g. Fleetwood Mac">
+                    </div>
+                    <div class="field field-lg">
+                        <label for="g-nick">Your name <span class="field-optional">· optional</span></label>
+                        <input id="g-nick" name="nick" class="input" placeholder="So Mira can shout you out">
+                    </div>
+                    {% if state == 'error' %}
+                        <div id="g-title-error" class="form-error">Add a song title first.</div>
+                    {% endif %}
+                    <a class="btn btn-primary btn-touch btn-lg btn-wide" href="{{ path('design_guest', {state: 'sent'}) }}">Send request</a>
+                    <div class="hint hint-center">
+                        {%- if state == 'limit-reached' -%}
+                            That's your {{ cap }} for tonight — you can still +1 songs
+                        {%- else -%}
+                            Up to {{ cap }} requests tonight
+                        {%- endif -%}
+                    </div>
+                </div>
+
+                <div class="stack-xs queue-preview">
+                    <div class="card-head">
+                        <h5 class="m-0">Already in the queue</h5>
+                        <span class="hint">Tap to +1</span>
+                    </div>
+                    <div class="list">
+                        {% for q in queue %}
+                            <div class="list-row list-row-compact">
+                                <div class="list-row-main">
+                                    <div class="list-row-title-sm truncate">{{ q.title }}</div>
+                                    <div class="list-row-sub">{{ q.artist }}</div>
+                                </div>
+                                {% if q.voted %}
+                                    <button type="button" class="btn btn-voted btn-touch btn-vote" aria-pressed="true" aria-label="Remove your +1 for {{ q.title }}">{{ icons.icon('check') }}{{ q.votes }}</button>
+                                {% else %}
+                                    <button type="button" class="btn btn-secondary btn-touch btn-vote" aria-pressed="false" aria-label="+1 {{ q.title }}">{{ icons.icon('plus') }}{{ q.votes }}</button>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        {% else %}
+            <div class="stack-xl state-sent">
+                <div class="confirm-mark">{{ icons.icon('check', 28, 18) }}</div>
+                <div class="stack-sm">
+                    {% if state == 'tipped' %}
+                        <h1 class="display">Sent and tipped</h1>
+                        <p class="lede">Thanks for the CHF 5. Mira sees “{{ last_title }}” marked as tipped.</p>
+                    {% elseif state == 'duplicate' %}
+                        <h1 class="display">Added your +1</h1>
+                        <p class="lede">“{{ last_title }}” was already in the queue — your vote moves it up.</p>
+                    {% else %}
+                        <h1 class="display">Request sent</h1>
+                        <p class="lede">“{{ last_title }}” is in Mira's queue. Keep dancing.</p>
+                    {% endif %}
+                </div>
+
+                {% if state != 'tipped' %}
+                    <div class="card card-lg tip-card">
+                        <div class="stack-xs">
+                            <div class="card-title">Say thanks with a tip?</div>
+                            <div class="note">Goes straight to Mira. Paid with TWINT.</div>
+                        </div>
+                        <div class="seg seg-fill seg-lg" role="radiogroup" aria-label="Tip amount">
+                            {% for amount in [5, 10, 20] %}
+                                <label class="seg-opt"><input type="radio" name="tip" value="{{ amount }}"{% if loop.first %} checked{% endif %}>CHF {{ amount }}</label>
+                            {% endfor %}
+                        </div>
+                        <a class="btn btn-primary btn-touch btn-lg btn-wide" href="{{ path('design_guest', {state: 'tipped'}) }}">Tip CHF 5 with TWINT</a>
+                    </div>
+                {% endif %}
+
+                <a class="btn btn-secondary btn-touch btn-tall btn-wide" href="{{ path('design_guest') }}">Back to the queue</a>
+            </div>
+        {% endif %}
+    </main>
+{% endblock %}
