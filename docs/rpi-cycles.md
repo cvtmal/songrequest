@@ -1,6 +1,6 @@
 # Song Request: RPI cycles
 
-_Last updated: 2026-10-01 · Source: `prd.md` (scope), `roadmap.md` (phases)_
+_Last updated: 2026-10-02 · Source: `prd.md` (scope), `roadmap.md` (phases)_
 
 This file splits every requirement in `prd.md` into `/rpi` cycles and sets the order to run them in. One cycle = one slug = one pass through Research → Plan → Implement → Review, which ends with `make lint` and `make test` green and ideally one commit or PR.
 
@@ -27,7 +27,7 @@ Artifacts land in `.rpi-tracking/{research,plans,changes,reviews}/<date>/<slug>-
 |---|---|---|---|---|---|---|
 | 0 | `songrequest-base` | R0 | Phase 0 | — | — | ✅ Done |
 | 1 | `core-schema` | R1 | §10 (R1 tables), AS-8 (constraints) | 0 | — | ✅ Done |
-| 2 | `submit-song-request` | R1 | AS-2, AS-3, AS-5, AS-6 (drop), AS-7, AS-8, AS-9 | 1 | — | Research |
+| 2 | `submit-song-request` | R1 | AS-2, AS-3, AS-5, AS-6 (drop), AS-7, AS-8, AS-9 | 1 | — | ✅ Done |
 | 3 | `guest-request-page` | R1 | GR-1–GR-6, AS-1 | 2 | — | Research |
 | 4 | `dj-login` | R1 | AC-2 | 1 | — | Research |
 | 5 | `event-lifecycle-qr` | R1 | EV-1 (minimal), EV-2, EV-3 | 4 | — | Research |
@@ -94,7 +94,7 @@ Goal: the owner uses it at a real gig. One seeded DJ, no payments.
 - Event not open / stopped → domain exception (GR-5 server side).
 - No device IDs, fingerprinting or SMS (AS-9).
 - Done when: unit tests for each rule, plus an integration test that fires concurrent submits and shows caps and merges hold.
-- **Outcome (2026-10-02):** no RateLimiter. The handler locks the event row (`PESSIMISTIC_WRITE`) and counts cooldown, cap and IP limits in SQL over `request_votes`, so every check sees each earlier accepted vote. Migration `Version20261001130000` adds `request_votes.ip_address` (`VARCHAR(45) NULL`). Limits are the `requests.cooldown_seconds`, `requests.max_per_guest` and `requests.max_per_ip_per_hour` container parameters. #3 maps these exceptions from `App\Requests\Exception` to messages: `EventNotFound`, `EventClosed`, `RequestsStopped`, `GuestRequestLimitReached`, `RequestCooldownActive` (`getSecondsLeft()`) and `IpRequestLimitReached`. Muted guests and a guest re-requesting their own queued song return success with nothing written. The handler creates the `guests` row on first submit, so #3's cookie listener only sets the cookie. #3 must configure trusted proxies before it passes `Request::getClientIp()`; otherwise every guest shares the proxy's IP and AS-7 caps the whole event at 30/h.
+- **Outcome (2026-10-02):** no RateLimiter. The handler locks the event row (`PESSIMISTIC_WRITE`) and counts cooldown, cap and IP limits in SQL over `request_votes`, so every check sees each earlier accepted vote. Migration `Version20261001130000` adds `request_votes.ip_address` (`VARCHAR(45) NULL`). Limits are the `requests.cooldown_seconds`, `requests.max_per_guest` and `requests.max_per_ip_per_hour` container parameters. #3 maps these exceptions from `App\Requests\Exception` to messages: `EventNotFound`, `EventClosed`, `RequestsStopped`, `GuestRequestLimitReached`, `RequestCooldownActive` (`getSecondsLeft()`) and `IpRequestLimitReached`. Muted guests and a guest re-requesting their own queued song return success with nothing written. The handler creates the `guests` row on first submit, so #3's cookie listener only sets the cookie. #3 must configure trusted proxies before it passes `Request::getClientIp()`; otherwise every guest shares the proxy's IP and AS-7 caps the whole event at 30/h. #3 must also reject or reissue a `guest_token` that is not a UUID before dispatching: `guests.token` is a `UUID` column, so a tampered cookie otherwise surfaces as a 500.
 
 ### 3. `guest-request-page`
 
