@@ -60,4 +60,15 @@ class RequestVoteRepository extends ServiceEntityRepository
             ['since' => Types::DATETIMETZ_IMMUTABLE],
         );
     }
+
+    /**
+     * A DJ only knows guests who voted in one of their events, so this is the tenancy check for blocking.
+     */
+    public function guestVotedForAccount(string $accountId, string $guestId): bool
+    {
+        return (bool) $this->getEntityManager()->getConnection()->fetchOne(
+            'SELECT EXISTS (SELECT 1 FROM request_votes WHERE account_id = :account_id AND guest_id = :guest_id)',
+            ['account_id' => $accountId, 'guest_id' => $guestId],
+        );
+    }
 }

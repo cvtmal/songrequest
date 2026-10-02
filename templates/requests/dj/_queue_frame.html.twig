@@ -1,0 +1,75 @@
+{% import '_macros/icons.html.twig' as icons %}
+
+{#
+    src and complete exist only on the full page: complete stops Turbo from fetching src again on page load,
+    and reload() clears it (vendored sourceURLReloaded). A frame response must not carry src: Turbo rejects a
+    frame whose src references the URL it was loaded from and renders it empty. Turbo keeps the outer
+    element's attributes on reload, so the poll keeps its src.
+#}
+<turbo-frame id="queue"{% if not frame_request %} src="{{ path('event_queue', {id: event.id, tab: tab == 'done' ? 'done' : null}) }}" complete{% endif %}
+    refresh="morph" data-controller="queue-poll" data-queue-poll-interval-value="5000">
+    <nav class="seg seg-fill" aria-label="{{ 'dj.queue.tabs_label'|trans }}">
+        <a class="seg-opt" href="{{ path('event_queue', {id: event.id}) }}" data-turbo-action="advance"{% if tab != 'done' %} aria-current="page"{% endif %}>{{ 'dj.queue.tab_queue'|trans({count: queue|length}) }}</a>
+        <a class="seg-opt" href="{{ path('event_queue', {id: event.id, tab: 'done'}) }}" data-turbo-action="advance"{% if tab == 'done' %} aria-current="page"{% endif %}>{{ 'dj.queue.tab_done'|trans({count: doneCount}) }}</a>
+    </nav>
+
+    {% set rows = tab == 'done' ? done : queue %}
+    <div class="list">
+        {% for row in rows %}
+            {% set at = tab == 'done' ? row.handledAt : row.firstRequestedAt %}
+            <div class="queue-item" data-request-id="{{ row.id }}">
+                <div class="queue-votes">
+                    {{ icons.icon('caret-up', 14, 22) }}
+                    <span>{{ row.votes }}</span>
+                </div>
+                <div class="queue-body">
+                    <div>
+                        <div class="queue-title">{{ row.title }}</div>
+                        {% if row.artist %}<div class="list-row-sub">{{ row.artist }}</div>{% endif %}
+                    </div>
+                    <div class="queue-meta">
+                        {# DQ-2 tip slot: #28 renders the tip tag here. #}
+                        {% if tab == 'done' %}
+                            <span class="tag tag-neutral">{{ (row.status == 'played' ? 'dj.queue.status_played' : 'dj.queue.status_skipped')|trans }}</span>
+                        {% endif %}
+                        {% if row.nicknames %}<span class="queue-nicknames">{{ row.nicknames }}</span>{% endif %}
+                        <span class="queue-age">{{ 'dj.queue.age'|trans({minutes: max(0, (now.timestamp - at.timestamp) // 60)}) }}</span>
+                    </div>
+                    {% if tab == 'done' %}
+                        <div class="queue-actions">
+                            <form method="post" action="{{ path('request_reopen', {id: event.id, requestId: row.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('request_reopen') }}">
+                                <button class="btn btn-secondary" type="submit">{{ 'dj.queue.undo'|trans }}</button>
+                            </form>
+                        </div>
+                    {% else %}
+                        {% set block_label = row.blockNickname ? 'dj.queue.block_named'|trans({name: row.blockNickname}) : 'dj.queue.block'|trans %}
+                        <div class="queue-actions">
+                            <form method="post" action="{{ path('request_played', {id: event.id, requestId: row.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('request_played') }}">
+                                <button class="btn btn-primary" type="submit">{{ icons.icon('check', 15) }}{{ 'dj.queue.played'|trans }}</button>
+                            </form>
+                            <form method="post" action="{{ path('request_skipped', {id: event.id, requestId: row.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('request_skipped') }}">
+                                <button class="btn btn-secondary" type="submit">{{ 'dj.queue.skip'|trans }}</button>
+                            </form>
+                            <form method="post" action="{{ path('guest_block', {id: event.id, guestId: row.blockGuestId}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('guest_block') }}">
+                                <button class="btn btn-secondary btn-icon" type="submit" aria-label="{{ block_label }}" title="{{ block_label }}">{{ icons.icon('prohibit', 16, 18) }}</button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="empty">{{ (tab == 'done' ? 'dj.queue.empty_done' : 'dj.queue.empty')|trans }}</div>
+        {% endfor %}
+    </div>
+
+    {% if mutedCount > 0 %}
+        <div class="hint">
+            {{ 'dj.queue.muted_hint'|trans({count: mutedCount}) }}
+            <a href="{{ path('guest_blocks') }}" data-turbo-frame="_top">{{ 'dj.queue.muted_link'|trans }}</a>
+        </div>
+    {% endif %}
+</turbo-frame>

@@ -27,6 +27,7 @@
                             <span class="tag {{ event.status == 'open' ? 'tag-accent' : 'tag-neutral' }}">{{ ('dj.events.status.' ~ event.status)|trans }}</span>
                         </div>
                         <div class="btn-row">
+                            <a class="btn btn-primary" href="{{ path('event_queue', {id: event.id}) }}">{{ 'dj.home.queue'|trans }}</a>
                             <a class="btn btn-secondary" href="{{ path('event_qr', {id: event.id}) }}">{{ 'dj.home.qr'|trans }}</a>
                             <form method="post" action="{{ path('event_close', {id: event.id}) }}"
                                 data-turbo-confirm="{{ 'dj.home.close_confirm'|trans({name: event.name}) }}">
@@ -48,11 +49,14 @@
                             <div class="list-row-title is-past">{{ event.name }}</div>
                         </div>
                         <span class="tag tag-neutral">{{ 'dj.events.status.closed'|trans }}</span>
+                        <a class="btn btn-secondary" href="{{ path('event_queue', {id: event.id}) }}">{{ 'dj.home.queue'|trans }}</a>
                         <a class="btn btn-secondary" href="{{ path('event_qr', {id: event.id}) }}">{{ 'dj.home.qr'|trans }}</a>
                     </div>
                 {% endfor %}
             </section>
         {% endif %}
+
+        <a class="btn btn-ghost btn-touch btn-start" href="{{ path('guest_blocks') }}">{{ 'dj.home.blocks'|trans }}</a>
 
         <form method="post" action="{{ logout_path() }}" data-turbo="false">
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">

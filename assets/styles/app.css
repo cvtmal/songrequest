@@ -207,9 +207,21 @@ a.seg-opt:not([aria-current]):hover { background: color-mix(in srgb, var(--color
 .queue-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; color: var(--color-neutral-500); }
 .queue-meta .tag { padding: 1px 8px; }
 .queue-actions { display: flex; gap: 8px; padding-top: 4px; }
-.queue-actions .btn { min-height: 40px; border-radius: var(--radius-lg); }
-.queue-actions .btn-icon { width: 44px; height: 40px; }
+.queue-actions .btn { min-height: 44px; border-radius: var(--radius-lg); }
+.queue-actions .btn-icon { width: 44px; height: 44px; }
+/* Each action is a form; the buttons lay out as if bare, and Played gets the widest target. */
+.queue-actions > form { display: contents; }
+.queue-actions > form:first-child .btn { flex: 1; }
+.queue-nicknames { color: var(--color-neutral-400); }
 .empty { padding: 48px 0; font-size: 15px; color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+
+/* DQ-7: readable at a glance on a laptop next to the decks. */
+@media (min-width: 900px) {
+  .page-queue { max-width: 760px; }
+  .page-queue .queue-title { font-size: 20px; }
+  .page-queue .queue-votes > span { font-size: 24px; }
+  .page-queue .queue-meta { font-size: 14px; }
+}
 
 /* — screen specifics — */
 .m-0 { margin: 0; }

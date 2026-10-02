@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+{% import '_macros/icons.html.twig' as icons %}
+
+{% block title %}{{ 'dj.queue.page_title'|trans({name: event.name}) }}{% endblock %}
+
+{% block body %}
+    <main class="page page-queue">
+        <a class="btn btn-ghost btn-touch btn-start back-link" href="{{ path('dj_home') }}">{{ icons.icon('caret-left', 15) }}{{ 'dj.queue.back'|trans }}</a>
+
+        <div class="page-head">
+            <div class="page-title">
+                <div class="page-sub">{{ event.name }}</div>
+                <h1>{{ 'dj.queue.heading'|trans }}</h1>
+            </div>
+            {# Outside the frame, so Stop/Resume is a normal Turbo Drive visit. #}
+            {% if event.status == 'open' %}
+                <form method="post" action="{{ path('event_stop', {id: event.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('event_stop') }}">
+                    <button class="btn btn-secondary btn-pill" type="submit"><span class="status-dot is-live"></span>{{ 'dj.queue.stop'|trans }}</button>
+                </form>
+            {% elseif event.status == 'stopped' %}
+                <form method="post" action="{{ path('event_resume', {id: event.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('event_resume') }}">
+                    <button class="btn btn-secondary btn-pill" type="submit"><span class="status-dot"></span>{{ 'dj.queue.resume'|trans }}</button>
+                </form>
+            {% else %}
+                <span class="tag tag-neutral">{{ 'dj.events.status.closed'|trans }}</span>
+            {% endif %}
+        </div>
+
+        {% if event.status == 'stopped' %}
+            <p class="hint">{{ 'dj.queue.stopped_hint'|trans }}</p>
+        {% elseif event.status == 'closed' %}
+            <p class="hint">{{ 'dj.queue.closed_hint'|trans }}</p>
+        {% endif %}
+
+        {{ include('requests/dj/_queue_frame.html.twig') }}
+    </main>
+{% endblock %}

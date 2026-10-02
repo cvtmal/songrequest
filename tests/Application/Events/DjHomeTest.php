@@ -91,6 +91,32 @@ final class DjHomeTest extends WebTestCase
         self::assertStringContainsString('Plaza Club', (string) $form->attr('data-turbo-confirm'));
     }
 
+    public function test_event_rows_link_to_their_queue(): void
+    {
+        $client = self::createClient();
+        $account = AccountFactory::createOne(['stageName' => 'DJ Mira']);
+        $client->loginUser(UserFactory::createOne(['account' => $account]));
+        $open = EventFactory::createOne(['account' => $account, 'name' => 'Plaza Club']);
+        $closed = EventFactory::createOne(['account' => $account, 'name' => 'Rote Fabrik']);
+        $this->changeStatus($closed, Event::STATUS_CLOSED);
+
+        $crawler = $client->request('GET', '/dj');
+
+        foreach ([$open, $closed] as $event) {
+            $row = $crawler->filter(\sprintf('[data-event-id="%s"]', $event->getId()));
+            self::assertCount(1, $row->filter(\sprintf('a[href="/dj/events/%s/queue"]', $event->getId())), $event->getName());
+        }
+    }
+
+    public function test_links_to_block_list(): void
+    {
+        $client = $this->loggedInClient();
+
+        $crawler = $client->request('GET', '/dj');
+
+        self::assertCount(1, $crawler->filter('a[href="/dj/blocks"]'));
+    }
+
     private function loggedInClient(): KernelBrowser
     {
         $client = self::createClient();

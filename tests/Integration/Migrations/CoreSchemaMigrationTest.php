@@ -18,6 +18,7 @@ final class CoreSchemaMigrationTest extends KernelTestCase
 {
     private const CORE_VERSION = 'DoctrineMigrations\Version20261001120000';
     private const IP_ADDRESS_VERSION = 'DoctrineMigrations\Version20261001130000';
+    private const HANDLED_AT_VERSION = 'DoctrineMigrations\Version20261002120000';
 
     public function test_mapping_is_in_sync_with_migrated_schema(): void
     {
@@ -26,6 +27,9 @@ final class CoreSchemaMigrationTest extends KernelTestCase
 
     public function test_down_then_up_restores_the_schema(): void
     {
+        $this->executeMigration(self::HANDLED_AT_VERSION, '--down');
+        self::assertFalse($this->requestsHasHandledAt());
+
         $this->executeMigration(self::IP_ADDRESS_VERSION, '--down');
         self::assertFalse($this->requestVotesHasIpAddress());
 
@@ -39,6 +43,9 @@ final class CoreSchemaMigrationTest extends KernelTestCase
 
         $this->executeMigration(self::IP_ADDRESS_VERSION, '--up');
         self::assertTrue($this->requestVotesHasIpAddress());
+
+        $this->executeMigration(self::HANDLED_AT_VERSION, '--up');
+        self::assertTrue($this->requestsHasHandledAt());
 
         $this->assertSchemaIsValid();
     }
@@ -77,6 +84,11 @@ final class CoreSchemaMigrationTest extends KernelTestCase
     private function requestVotesHasIpAddress(): bool
     {
         return $this->connection()->createSchemaManager()->introspectTable('request_votes')->hasColumn('ip_address');
+    }
+
+    private function requestsHasHandledAt(): bool
+    {
+        return $this->connection()->createSchemaManager()->introspectTable('requests')->hasColumn('handled_at');
     }
 
     private function connection(): Connection

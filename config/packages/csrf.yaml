@@ -10,3 +10,10 @@ framework:
             - authenticate
             - logout
             - event_close
+            - event_stop
+            - event_resume
+            - request_played
+            - request_skipped
+            - request_reopen
+            - guest_block
+            - guest_unblock

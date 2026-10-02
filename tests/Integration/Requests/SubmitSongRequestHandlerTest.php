@@ -75,7 +75,7 @@ final class SubmitSongRequestHandlerTest extends KernelTestCase
     {
         $event = EventFactory::createOne();
         $this->submit($event->getId(), Uuid::v4()->toRfc4122(), 'Mr Brightside');
-        $this->connection()->executeStatement("UPDATE requests SET status = 'played'");
+        $this->connection()->executeStatement("UPDATE requests SET status = 'played', handled_at = CURRENT_TIMESTAMP");
 
         $this->submit($event->getId(), Uuid::v4()->toRfc4122(), 'Mr Brightside');
 

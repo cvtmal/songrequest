@@ -31,7 +31,7 @@ Artifacts land in `.rpi-tracking/{research,plans,changes,reviews}/<date>/<slug>-
 | 3 | `guest-request-page` | R1 | GR-1–GR-6, AS-1 | 2 | — | ✅ Done |
 | 4 | `dj-login` | R1 | AC-2 | 1 | — | ✅ Done |
 | 5 | `event-lifecycle-qr` | R1 | EV-1 (minimal), EV-2, EV-3 | 4 | — | ✅ Done |
-| 6 | `dj-queue` | R1 | DQ-1–DQ-7, AS-6 (block), DQ-4 | 2, 4, 5 | — | Research |
+| 6 | `dj-queue` | R1 | DQ-1–DQ-7, AS-6 (block), DQ-4 | 2, 4, 5 | — | ✅ Done |
 | 7 | `prod-deploy` | R5 | NFR security, OP-2 | 6 | Q13 | Research |
 | 8 | `prod-backups-monitoring` | R5 | NFR availability, OP-3 | 7 | Q13 | Research |
 | 9 | `i18n-foundation` | R2 | NO-1 (language), NFR localization | 6 | Q10 (default language only) | Research |
@@ -130,6 +130,7 @@ Goal: the owner uses it at a real gig. One seeded DJ, no payments.
 - Turbo Frame polling every ≤ 5 s (DQ-6). One-handed on a phone, readable on a laptop (DQ-7). Start from `templates/design/dj_queue.html.twig`.
 - All writes through commands on `command.bus`.
 - Done when: application tests for each action, the sort order and block/undo; muted guest's later requests don't appear.
+- **Outcome (2026-10-02):** The queue and its actions live in `Requests`: `/dj/events/{id}/queue` (`event_queue`, `?tab=done` for the Done tab), POST `/dj/events/{id}/requests/{requestId}/played|skipped|reopen` (`request_played`, `request_skipped`, `request_reopen`), POST `/dj/events/{id}/guests/{guestId}/block` (`guest_block`), and the account block list `/dj/blocks` (`guest_blocks`) with POST `/dj/blocks/{guestId}/unblock` (`guest_unblock`). Stop/Resume stays in `Events` as POST `/dj/events/{id}/stop|resume` (`event_stop`, `event_resume`). All actions are CSRF-protected one-tap POSTs without confirm prompts, scoped by account (another account's event, request or guest is a 404), and allowed on stopped and closed events. A new `requests.handled_at` records when a request left the queue, guarded by `chk_requests_handled_at` (`status = 'new'` iff `handled_at IS NULL`): any SQL that sets a done status must also set it. Played, Skip and Undo lock the event row; Undo is a silent no-op when the same song is open again, so `uk_requests_event_song` never fires. A block targets the earliest visible voter by `guests.id`; `findQueue` ignores votes from blocked guests, so a request with only blocked voters disappears and an unblock brings it back. `Event::stopRequests()` and `resumeRequests()` are idempotent and never leave `closed`. Polling is `<turbo-frame id="queue" refresh="morph" complete>` reloaded every 5 s by `queue_poll_controller.js` (paused while the tab is hidden); a `Turbo-Frame: queue` request gets the frame partial only. `AppStory` seeds four requests on `demo` through the real submit handler. Later cycles: #11 must put these routes behind voters, and must also check `guest_block`'s `{id}` against the account, which today only serves as the redirect target; #17 adds the new-request cue; #28 fills the tip slot comment in `_queue_frame.html.twig`; #25 measures `findQueue` under the poll load.
 
 ## R5 Production hardening (roadmap Phase 5, run early)
 

@@ -61,6 +61,9 @@ class SongRequest
     #[ORM\Column(length: 16, options: ['default' => self::STATUS_NEW])]
     private string $status;
 
+    #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $handledAt;
+
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
@@ -76,8 +79,46 @@ class SongRequest
         $this->artist = $artist;
         $this->votes = 1;
         $this->status = self::STATUS_NEW;
+        $this->handledAt = null;
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function markPlayed(\DateTimeImmutable $now): void
+    {
+        $this->handle(self::STATUS_PLAYED, $now);
+    }
+
+    public function markSkipped(\DateTimeImmutable $now): void
+    {
+        $this->handle(self::STATUS_SKIPPED, $now);
+    }
+
+    /**
+     * The caller must first make sure no open duplicate exists: uk_requests_event_song allows
+     * one open row per song (see ReopenRequestHandler).
+     */
+    public function reopen(\DateTimeImmutable $now): void
+    {
+        if (self::STATUS_NEW === $this->status) {
+            return;
+        }
+
+        $this->status = self::STATUS_NEW;
+        $this->handledAt = null;
+        $this->updatedAt = $now;
+    }
+
+    private function handle(string $status, \DateTimeImmutable $now): void
+    {
+        // A double tap is harmless; played and skipped may switch directly.
+        if ($this->status === $status) {
+            return;
+        }
+
+        $this->status = $status;
+        $this->handledAt = $now;
+        $this->updatedAt = $now;
     }
 
     public function getId(): string
@@ -125,6 +166,11 @@ class SongRequest
     public function getStatus(): string
     {
         return $this->status;
+    }
+
+    public function getHandledAt(): ?\DateTimeImmutable
+    {
+        return $this->handledAt;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

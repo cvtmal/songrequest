@@ -7,6 +7,8 @@ namespace App\Events\Controller;
 use App\Accounts\Entity\User;
 use App\Events\Command\CloseEvent;
 use App\Events\Command\CreateEvent;
+use App\Events\Command\ResumeRequests;
+use App\Events\Command\StopRequests;
 use App\Events\Exception\EventNotFound;
 use App\Events\Form\EventData;
 use App\Events\Form\EventType;
@@ -22,7 +24,7 @@ use Symfony\Component\Routing\Requirement\Requirement;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 /**
- * Creating and closing events (EV-1, EV-2).
+ * Creating, closing, stopping and resuming events (EV-1, EV-2, DQ-5).
  */
 final class EventController extends AbstractController
 {
@@ -57,8 +59,39 @@ final class EventController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
+        $this->dispatchOrNotFound(new CloseEvent($id, $user->getAccount()->getId()));
+
+        return $this->redirectToRoute('dj_home', status: Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/dj/events/{id}/stop', name: 'event_stop', requirements: ['id' => Requirement::UUID], methods: ['POST'])]
+    public function stop(Request $request, string $id, #[CurrentUser] User $user): Response
+    {
+        if (!$this->isCsrfTokenValid('event_stop', $request->getPayload()->getString('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $this->dispatchOrNotFound(new StopRequests($id, $user->getAccount()->getId()));
+
+        return $this->redirectToRoute('event_queue', ['id' => $id], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/dj/events/{id}/resume', name: 'event_resume', requirements: ['id' => Requirement::UUID], methods: ['POST'])]
+    public function resume(Request $request, string $id, #[CurrentUser] User $user): Response
+    {
+        if (!$this->isCsrfTokenValid('event_resume', $request->getPayload()->getString('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $this->dispatchOrNotFound(new ResumeRequests($id, $user->getAccount()->getId()));
+
+        return $this->redirectToRoute('event_queue', ['id' => $id], Response::HTTP_SEE_OTHER);
+    }
+
+    private function dispatchOrNotFound(object $command): void
+    {
         try {
-            $this->bus->dispatch(new CloseEvent($id, $user->getAccount()->getId()));
+            $this->bus->dispatch($command);
         } catch (HandlerFailedException $e) {
             // Keyed by handler name, not by position.
             $domainException = array_values($e->getWrappedExceptions(DomainException::class, true))[0] ?? null;
@@ -68,7 +101,5 @@ final class EventController extends AbstractController
 
             throw $e;
         }
-
-        return $this->redirectToRoute('dj_home', status: Response::HTTP_SEE_OTHER);
     }
 }

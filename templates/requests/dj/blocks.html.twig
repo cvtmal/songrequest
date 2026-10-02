@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+{% import '_macros/icons.html.twig' as icons %}
+
+{% block title %}{{ 'dj.blocks.page_title'|trans }}{% endblock %}
+
+{% block body %}
+    <main class="page page-wide">
+        <a class="btn btn-ghost btn-touch btn-start back-link" href="{{ path('dj_home') }}">{{ icons.icon('caret-left', 15) }}{{ 'dj.blocks.back'|trans }}</a>
+        <h1 class="display">{{ 'dj.blocks.heading'|trans }}</h1>
+        <p class="page-kicker">{{ 'dj.blocks.lede'|trans }}</p>
+
+        {% if blocks is empty %}
+            <p class="empty">{{ 'dj.blocks.empty'|trans }}</p>
+        {% else %}
+            <section class="list">
+                {% for block in blocks %}
+                    <div class="list-row" data-guest-id="{{ block.guestId }}">
+                        <div class="list-row-main">
+                            <div class="list-row-title">{{ block.nickname ?? 'dj.blocks.anonymous'|trans }}</div>
+                            {% if block.lastTitle %}
+                                <div class="list-row-sub">{{ 'dj.blocks.last_request'|trans({title: block.lastTitle}) }}{% if block.lastArtist %} · {{ block.lastArtist }}{% endif %}</div>
+                            {% endif %}
+                            <div class="list-row-sub">{{ 'dj.blocks.blocked_at'|trans({date: block.blockedAt|date('d.m.Y')}) }}</div>
+                        </div>
+                        <form method="post" action="{{ path('guest_unblock', {guestId: block.guestId}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('guest_unblock') }}">
+                            <button class="btn btn-secondary" type="submit">{{ 'dj.blocks.unblock'|trans }}</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </section>
+        {% endif %}
+    </main>
+{% endblock %}

@@ -9,6 +9,7 @@ use App\Accounts\Repository\AccountRepository;
 use App\Accounts\Repository\UserRepository;
 use App\Events\Entity\Event;
 use App\Events\Repository\EventRepository;
+use App\Requests\Repository\SongRequestRepository;
 use App\Story\AppStory;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
@@ -46,5 +47,21 @@ final class AppStoryTest extends KernelTestCase
         self::assertInstanceOf(PasswordHasherFactoryInterface::class, $hasherFactory);
         self::assertSame('dj@example.com', $user->getEmail());
         self::assertTrue($hasherFactory->getPasswordHasher(User::class)->verify($user->getPasswordHash(), 'password'));
+    }
+
+    public function test_seeds_a_ranked_queue_on_the_demo_event(): void
+    {
+        AppStory::load();
+
+        $event = AppStory::get('event');
+        $songRequests = self::getContainer()->get(SongRequestRepository::class);
+        self::assertInstanceOf(Event::class, $event);
+        self::assertInstanceOf(SongRequestRepository::class, $songRequests);
+
+        $queue = $songRequests->findQueue($event->getId(), $event->getAccount()->getId());
+
+        self::assertCount(4, $queue);
+        self::assertSame(['Dreams', 3], [$queue[0]['title'], $queue[0]['votes']]);
+        self::assertSame(['Get Lucky', 2], [$queue[1]['title'], $queue[1]['votes']]);
     }
 }

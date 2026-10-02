@@ -48,7 +48,7 @@ final class SongRequestsConstraintsTest extends KernelTestCase
     {
         $event = EventFactory::createOne();
         $id = $this->insertRequest($event, 'Mr. Brightside', 'The Killers');
-        $this->connection()->update('requests', ['status' => 'played'], ['id' => $id]);
+        $this->connection()->update('requests', ['status' => 'played', 'handled_at' => '2026-10-03 01:00:00+00'], ['id' => $id]);
 
         $this->insertRequest($event, 'Mr. Brightside', 'The Killers');
 
@@ -86,7 +86,8 @@ final class SongRequestsConstraintsTest extends KernelTestCase
 
         self::assertCheckViolation(
             'chk_requests_status',
-            fn () => $this->insertRequest($event, 'Mr. Brightside', null, ['status' => 'pending']),
+            // handled_at is set so chk_requests_handled_at holds and only the status check can fire.
+            fn () => $this->insertRequest($event, 'Mr. Brightside', null, ['status' => 'pending', 'handled_at' => '2026-10-03 01:00:00+00']),
         );
     }
 
@@ -105,6 +106,26 @@ final class SongRequestsConstraintsTest extends KernelTestCase
         $event = EventFactory::createOne();
 
         self::assertCheckViolation('chk_requests_title_not_blank', fn () => $this->insertRequest($event, "  \t ", null));
+    }
+
+    public function test_played_request_needs_handled_at(): void
+    {
+        $id = $this->insertRequest(EventFactory::createOne(), 'Mr. Brightside', null);
+
+        self::assertCheckViolation(
+            'chk_requests_handled_at',
+            fn () => $this->connection()->update('requests', ['status' => 'played'], ['id' => $id]),
+        );
+    }
+
+    public function test_open_request_must_not_have_handled_at(): void
+    {
+        $id = $this->insertRequest(EventFactory::createOne(), 'Mr. Brightside', null);
+
+        self::assertCheckViolation(
+            'chk_requests_handled_at',
+            fn () => $this->connection()->update('requests', ['handled_at' => '2026-10-03 01:00:00+00'], ['id' => $id]),
+        );
     }
 
     /**

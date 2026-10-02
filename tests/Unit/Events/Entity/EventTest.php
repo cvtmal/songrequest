@@ -34,8 +34,7 @@ final class EventTest extends TestCase
     public function test_close_works_from_stopped(): void
     {
         $event = $this->event();
-        // No method sets stopped until #6.
-        (new \ReflectionProperty(Event::class, 'status'))->setValue($event, Event::STATUS_STOPPED);
+        $event->stopRequests(new \DateTimeImmutable('2026-10-03 02:00:00'));
 
         $event->close(new \DateTimeImmutable('2026-10-03 03:00:00'));
 
@@ -52,6 +51,68 @@ final class EventTest extends TestCase
 
         self::assertEquals($first, $event->getClosedAt());
         self::assertEquals($first, $event->getUpdatedAt());
+    }
+
+    public function test_stop_requests_sets_stopped_and_updated_at(): void
+    {
+        $event = $this->event();
+        $now = new \DateTimeImmutable('2026-10-03 02:00:00');
+
+        $event->stopRequests($now);
+
+        self::assertSame(Event::STATUS_STOPPED, $event->getStatus());
+        self::assertEquals($now, $event->getUpdatedAt());
+    }
+
+    public function test_stopping_twice_is_a_no_op(): void
+    {
+        $event = $this->event();
+        $first = new \DateTimeImmutable('2026-10-03 02:00:00');
+
+        $event->stopRequests($first);
+        $event->stopRequests(new \DateTimeImmutable('2026-10-03 02:30:00'));
+
+        self::assertSame(Event::STATUS_STOPPED, $event->getStatus());
+        self::assertEquals($first, $event->getUpdatedAt());
+    }
+
+    public function test_resume_requests_reopens_a_stopped_event(): void
+    {
+        $event = $this->event();
+        $openedAt = $event->getOpenedAt();
+        $now = new \DateTimeImmutable('2026-10-03 02:30:00');
+        $event->stopRequests(new \DateTimeImmutable('2026-10-03 02:00:00'));
+
+        $event->resumeRequests($now);
+
+        self::assertSame(Event::STATUS_OPEN, $event->getStatus());
+        self::assertEquals($now, $event->getUpdatedAt());
+        self::assertSame($openedAt, $event->getOpenedAt());
+    }
+
+    public function test_resume_of_an_open_event_is_a_no_op(): void
+    {
+        $event = $this->event();
+        $updatedAt = $event->getUpdatedAt();
+
+        $event->resumeRequests(new \DateTimeImmutable('2026-10-03 02:30:00'));
+
+        self::assertSame(Event::STATUS_OPEN, $event->getStatus());
+        self::assertSame($updatedAt, $event->getUpdatedAt());
+    }
+
+    public function test_stop_and_resume_do_not_leave_closed(): void
+    {
+        $event = $this->event();
+        $closedAt = new \DateTimeImmutable('2026-10-03 03:00:00');
+        $event->close($closedAt);
+
+        $event->stopRequests(new \DateTimeImmutable('2026-10-03 03:10:00'));
+        $event->resumeRequests(new \DateTimeImmutable('2026-10-03 03:20:00'));
+
+        self::assertSame(Event::STATUS_CLOSED, $event->getStatus());
+        self::assertEquals($closedAt, $event->getClosedAt());
+        self::assertEquals($closedAt, $event->getUpdatedAt());
     }
 
     private function event(): Event

@@ -79,6 +79,31 @@ class Event
         $this->updatedAt = $now;
     }
 
+    /**
+     * Stop/Resume toggles guest submissions (DQ-5). Both are no-ops in the target state, so a
+     * double tap is harmless, and on closed, so no method leaves closed (EV-2). openedAt keeps
+     * the first opening.
+     */
+    public function stopRequests(\DateTimeImmutable $now): void
+    {
+        if (self::STATUS_OPEN !== $this->status) {
+            return;
+        }
+
+        $this->status = self::STATUS_STOPPED;
+        $this->updatedAt = $now;
+    }
+
+    public function resumeRequests(\DateTimeImmutable $now): void
+    {
+        if (self::STATUS_STOPPED !== $this->status) {
+            return;
+        }
+
+        $this->status = self::STATUS_OPEN;
+        $this->updatedAt = $now;
+    }
+
     public function getId(): string
     {
         \assert(null !== $this->id);

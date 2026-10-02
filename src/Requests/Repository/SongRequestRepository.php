@@ -59,4 +59,110 @@ class SongRequestRepository extends ServiceEntityRepository
 
         return $id;
     }
+
+    /**
+     * The open queue in DQ-1 order: votes, then first request.
+     *
+     * Votes from guests the account has blocked are not counted, so a request with only blocked
+     * voters drops out (AS-6) and an unblock brings it back. The block target is the earliest
+     * visible voter: the original requester, unless that guest is blocked.
+     *
+     * @return list<array{id: string, title: string, artist: ?string, votes: int, nicknames: ?string, firstRequestedAt: \DateTimeImmutable, blockGuestId: string, blockNickname: ?string}>
+     */
+    public function findQueue(string $eventId, string $accountId): array
+    {
+        $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
+            <<<'SQL'
+                SELECT r.id, r.title, r.artist, r.created_at,
+                       count(v.id) AS votes,
+                       string_agg(v.nickname, ', ' ORDER BY v.created_at, v.id) AS nicknames,
+                       (array_agg(v.guest_id ORDER BY v.created_at, v.id))[1] AS block_guest_id,
+                       (array_agg(v.nickname ORDER BY v.created_at, v.id))[1] AS block_nickname
+                FROM requests r
+                JOIN request_votes v ON v.request_id = r.id
+                LEFT JOIN account_guest_blocks b ON b.account_id = r.account_id AND b.guest_id = v.guest_id
+                WHERE r.event_id = :event_id AND r.account_id = :account_id AND r.status = 'new' AND b.id IS NULL
+                GROUP BY r.id
+                ORDER BY votes DESC, r.created_at ASC, r.id ASC
+                SQL,
+            ['event_id' => $eventId, 'account_id' => $accountId],
+        );
+
+        return array_map(static function (array $row): array {
+            \assert(\is_string($row['id']) && \is_string($row['title']) && \is_string($row['created_at']) && \is_string($row['block_guest_id']));
+            \assert((null === $row['artist'] || \is_string($row['artist'])) && (null === $row['nicknames'] || \is_string($row['nicknames'])));
+            \assert(null === $row['block_nickname'] || \is_string($row['block_nickname']));
+
+            return [
+                'id' => $row['id'],
+                'title' => $row['title'],
+                'artist' => $row['artist'],
+                'votes' => (int) $row['votes'],
+                'nicknames' => $row['nicknames'],
+                'firstRequestedAt' => new \DateTimeImmutable($row['created_at']),
+                'blockGuestId' => $row['block_guest_id'],
+                'blockNickname' => $row['block_nickname'],
+            ];
+        }, $rows);
+    }
+
+    /**
+     * Played and skipped requests, last handled first. Votes are not filtered by blocks here.
+     *
+     * @return list<array{id: string, title: string, artist: ?string, status: string, votes: int, nicknames: ?string, handledAt: \DateTimeImmutable}>
+     */
+    public function findDone(string $eventId, string $accountId): array
+    {
+        $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
+            <<<'SQL'
+                SELECT r.id, r.title, r.artist, r.status, r.handled_at,
+                       count(v.id) AS votes,
+                       string_agg(v.nickname, ', ' ORDER BY v.created_at, v.id) AS nicknames
+                FROM requests r
+                LEFT JOIN request_votes v ON v.request_id = r.id
+                WHERE r.event_id = :event_id AND r.account_id = :account_id AND r.status <> 'new'
+                GROUP BY r.id
+                ORDER BY r.handled_at DESC, r.id DESC
+                SQL,
+            ['event_id' => $eventId, 'account_id' => $accountId],
+        );
+
+        return array_map(static function (array $row): array {
+            \assert(\is_string($row['id']) && \is_string($row['title']) && \is_string($row['status']) && \is_string($row['handled_at']));
+            \assert((null === $row['artist'] || \is_string($row['artist'])) && (null === $row['nicknames'] || \is_string($row['nicknames'])));
+
+            return [
+                'id' => $row['id'],
+                'title' => $row['title'],
+                'artist' => $row['artist'],
+                'status' => $row['status'],
+                'votes' => (int) $row['votes'],
+                'nicknames' => $row['nicknames'],
+                'handledAt' => new \DateTimeImmutable($row['handled_at']),
+            ];
+        }, $rows);
+    }
+
+    public function countDone(string $eventId, string $accountId): int
+    {
+        return (int) $this->getEntityManager()->getConnection()->fetchOne(
+            "SELECT count(*) FROM requests WHERE event_id = :event_id AND account_id = :account_id AND status <> 'new'",
+            ['event_id' => $eventId, 'account_id' => $accountId],
+        );
+    }
+
+    public function hasOpenDuplicate(string $eventId, string $titleNormalized, ?string $artistNormalized): bool
+    {
+        // IS NOT DISTINCT FROM matches uk_requests_event_song's NULLS NOT DISTINCT.
+        return (bool) $this->getEntityManager()->getConnection()->fetchOne(
+            <<<'SQL'
+                SELECT EXISTS (
+                    SELECT 1 FROM requests
+                    WHERE event_id = :event_id AND status = 'new'
+                      AND title_normalized = :title AND artist_normalized IS NOT DISTINCT FROM :artist
+                )
+                SQL,
+            ['event_id' => $eventId, 'title' => $titleNormalized, 'artist' => $artistNormalized],
+        );
+    }
 }
