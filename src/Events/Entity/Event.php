@@ -64,6 +64,21 @@ class Event
         $this->updatedAt = $now;
     }
 
+    /**
+     * Closing is one-way: no method leaves closed, so a closed link never takes requests again (EV-2).
+     */
+    public function close(\DateTimeImmutable $now): void
+    {
+        // A double tap is harmless.
+        if (self::STATUS_CLOSED === $this->status) {
+            return;
+        }
+
+        $this->status = self::STATUS_CLOSED;
+        $this->closedAt = $now;
+        $this->updatedAt = $now;
+    }
+
     public function getId(): string
     {
         \assert(null !== $this->id);

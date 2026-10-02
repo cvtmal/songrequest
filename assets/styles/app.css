@@ -162,6 +162,30 @@ a.seg-opt:not([aria-current]):hover { background: color-mix(in srgb, var(--color
   display: grid; place-items: center; font-size: 12px;
 }
 
+/* — QR sheet (DJ) — */
+/* A QR code needs dark modules on a light ground to scan, whatever the theme. */
+.qr-sheet {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 20px; border-radius: var(--radius-lg);
+  background: #fff; color: #121413;
+}
+.qr-full { width: min(80vw, 420px); aspect-ratio: 1; height: auto; }
+.qr-name { font-size: 18px; font-weight: 600; text-align: center; }
+.qr-url { color: #1d7d4e; word-break: break-all; text-align: center; }
+.qr-sheet:fullscreen { justify-content: center; }
+.qr-sheet:fullscreen .qr-full { width: min(90vmin, 90vh); }
+/* The close form sits in a .btn-row next to a link, so it stretches like a button. */
+.btn-row > form { flex: 1; display: flex; }
+.btn-row > form > .btn { flex: 1; }
+
+@media print {
+  .no-print { display: none !important; }
+  body, body.glow { background: #fff; }
+  .qr-sheet { padding: 0; box-shadow: none; }
+  .qr-full { width: 12cm; }
+  .qr-url { color: #000; }
+}
+
 /* — guest confirmation — */
 .confirm-mark {
   width: 64px; height: 64px; border-radius: 50%;

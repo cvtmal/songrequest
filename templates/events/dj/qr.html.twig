@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+{% import '_macros/icons.html.twig' as icons %}
+
+{% block title %}{{ 'dj.events.qr.page_title'|trans({name: event.name}) }}{% endblock %}
+
+{% block body %}
+    <main class="page page-wide qr-page" data-controller="qr">
+        <div class="stack-sm no-print">
+            <a class="btn btn-ghost btn-touch btn-start back-link" href="{{ path('dj_home') }}">{{ icons.icon('caret-left', 15) }}{{ 'dj.events.qr.back'|trans }}</a>
+            <h1 class="display">{{ event.name }}</h1>
+        </div>
+
+        {% if event.status == 'closed' %}
+            <p class="form-error qr-closed" role="status">{{ 'dj.events.qr.closed'|trans }}</p>
+        {% endif %}
+
+        <div class="qr-sheet" data-qr-target="sheet">
+            <img class="qr-full" src="{{ data_uri }}" alt="{{ 'dj.events.qr.alt'|trans({name: event.name}) }}">
+            <div class="qr-name">{{ event.name }}</div>
+            <div class="link-accent qr-url">{{ guest_url }}</div>
+        </div>
+
+        <div class="no-print stack-sm">
+            <div class="btn-row">
+                <a class="btn btn-secondary btn-touch" href="{{ path('event_qr_png', {id: event.id}) }}" download data-turbo="false">{{ 'dj.events.qr.download_png'|trans }}</a>
+                <a class="btn btn-secondary btn-touch" href="{{ path('event_qr_svg', {id: event.id}) }}" download data-turbo="false">{{ 'dj.events.qr.download_svg'|trans }}</a>
+            </div>
+            <div class="btn-row">
+                <button type="button" class="btn btn-secondary btn-touch" data-action="qr#fullscreen">{{ 'dj.events.qr.fullscreen'|trans }}</button>
+                <button type="button" class="btn btn-secondary btn-touch" data-action="qr#print">{{ 'dj.events.qr.print'|trans }}</button>
+            </div>
+        </div>
+    </main>
+{% endblock %}

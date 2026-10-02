@@ -37,5 +37,32 @@ dj:
     home:
         page_title: '{dj} · Song Request'
         heading: 'Hallo {dj}'
-        coming_soon: 'Hier erscheinen bald deine Events.'
+        new_event: 'Neues Event'
+        empty: 'Noch keine Events. Leg dein erstes an.'
+        active: 'Aktiv'
+        closed: 'Beendet'
+        qr: 'QR-Code'
+        close: 'Beenden'
+        close_confirm: 'Event «{name}» beenden? Link und QR-Code nehmen danach keine Wünsche mehr an. Das lässt sich nicht rückgängig machen.'
         logout: 'Abmelden'
+    events:
+        status:
+            open: 'Offen'
+            stopped: 'Gestoppt'
+            closed: 'Beendet'
+        new:
+            page_title: 'Neues Event · Song Request'
+            heading: 'Neues Event'
+            back: 'Events'
+            name_label: 'Name'
+            name_placeholder: 'z. B. Hochzeit Meier'
+            submit: 'Event erstellen'
+        qr:
+            page_title: 'QR-Code · {name}'
+            back: 'Events'
+            closed: 'Dieses Event ist beendet. Der Link nimmt keine Wünsche mehr an.'
+            alt: 'QR-Code für {name}'
+            download_png: 'PNG herunterladen'
+            download_svg: 'SVG herunterladen'
+            fullscreen: 'Vollbild'
+            print: 'Drucken'

@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+{% import '_macros/icons.html.twig' as icons %}
+
+{% macro field_error_attrs(field, id) %}
+    {%- if not field.vars.valid %} aria-invalid="true" aria-describedby="{{ id }}-error"{% endif -%}
+{% endmacro %}
+
+{% macro field_errors(field, id) %}
+    {%- if not field.vars.valid -%}
+        <div id="{{ id }}-error" class="form-error">
+            {{- field_errors(field)|join(' ') -}}
+        </div>
+    {%- endif -%}
+{% endmacro %}
+
+{% block title %}{{ 'dj.events.new.page_title'|trans }}{% endblock %}
+{% block body_class %}glow{% endblock %}
+
+{% block body %}
+    <main class="page page-wide">
+        <a class="btn btn-ghost btn-touch btn-start back-link" href="{{ path('dj_home') }}">{{ icons.icon('caret-left', 15) }}{{ 'dj.events.new.back'|trans }}</a>
+        <h1 class="display">{{ 'dj.events.new.heading'|trans }}</h1>
+
+        <form method="post" action="{{ path('event_new') }}" class="stack">
+            {% if form.vars.errors|length > 0 %}
+                <div class="form-error" role="alert">
+                    {{- field_errors(form)|join(' ') -}}
+                </div>
+            {% endif %}
+
+            <div class="field field-lg">
+                <label for="e-name">{{ 'dj.events.new.name_label'|trans }}</label>
+                <input id="e-name" name="{{ field_name(form.name) }}" value="{{ field_value(form.name) }}" class="input"
+                    placeholder="{{ 'dj.events.new.name_placeholder'|trans }}" required maxlength="120" autofocus
+                    {{- _self.field_error_attrs(form.name, 'e-name') }}>
+                {{ _self.field_errors(form.name, 'e-name') }}
+            </div>
+
+            {{ form_widget(form._token) }}
+
+            <button type="submit" class="btn btn-primary btn-touch btn-lg btn-wide">{{ 'dj.events.new.submit'|trans }}</button>
+        </form>
+    </main>
+{% endblock %}

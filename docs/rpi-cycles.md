@@ -30,7 +30,7 @@ Artifacts land in `.rpi-tracking/{research,plans,changes,reviews}/<date>/<slug>-
 | 2 | `submit-song-request` | R1 | AS-2, AS-3, AS-5, AS-6 (drop), AS-7, AS-8, AS-9 | 1 | — | ✅ Done |
 | 3 | `guest-request-page` | R1 | GR-1–GR-6, AS-1 | 2 | — | ✅ Done |
 | 4 | `dj-login` | R1 | AC-2 | 1 | — | ✅ Done |
-| 5 | `event-lifecycle-qr` | R1 | EV-1 (minimal), EV-2, EV-3 | 4 | — | Research |
+| 5 | `event-lifecycle-qr` | R1 | EV-1 (minimal), EV-2, EV-3 | 4 | — | ✅ Done |
 | 6 | `dj-queue` | R1 | DQ-1–DQ-7, AS-6 (block), DQ-4 | 2, 4, 5 | — | Research |
 | 7 | `prod-deploy` | R5 | NFR security, OP-2 | 6 | Q13 | Research |
 | 8 | `prod-backups-monitoring` | R5 | NFR availability, OP-3 | 7 | Q13 | Research |
@@ -120,6 +120,7 @@ Goal: the owner uses it at a real gig. One seeded DJ, no payments.
 - Open / close an event. Closing is permanent for that link (EV-2).
 - QR code per event: full-screen view, PNG and SVG download, print layout (EV-3). Research the QR library (needs a new Composer package, installed in the container).
 - Done when: application tests for create/open/close and that a closed event's guest page rejects requests; QR endpoints return valid images.
+- **Outcome (2026-10-02):** `/dj` (`dj_home`) is the event list: active (open and stopped) events above closed ones. `/dj/events/new` (`event_new`) takes a name only and redirects to the QR page; `/dj/events/{id}/close` (`event_close`) is a CSRF-protected POST with a `data-turbo-confirm` prompt; `/dj/events/{id}/qr`, `qr.png` and `qr.svg` show and download the code. Creating an event opens it, so there is no draft state (revisit in #13). `Event::close()` is one-way and idempotent: no method leaves `closed`, a second close is a no-op, and `CloseEventHandler` takes a row lock so an in-flight submit finishes first or sees `closed`. `CreateEventHandler` generates a 10-character slug from `23456789abcdefghjkmnpqrstuvwxyz` (no `0 o 1 l i`, about 49.5 bits; `uk_events_slug` guards collisions) and returns the new ID through `HandledStamp`. DJ routes and `CloseEvent` are scoped by account in queries (another account's event is a 404); #11 adds the `EVENT_MANAGE` voter on top. QR codes come from `endroid/qr-code` ^6.1; the PHP image now has `gd` for PNG, so existing checkouts need `make build`. The QR code encodes the guest URL built from the current request, so a code made through the quick tunnel carries its random hostname and stops working when the tunnel URL changes; print codes only after #7 gives a fixed host, or regenerate them per gig.
 
 ### 6. `dj-queue`
 

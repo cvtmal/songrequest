@@ -6,3 +6,7 @@ song_request:
         too_long: 'Der Interpret darf höchstens {{ limit }} Zeichen lang sein.'
     nickname:
         too_long: 'Der Name darf höchstens {{ limit }} Zeichen lang sein.'
+event:
+    name:
+        not_blank: 'Gib dem Event einen Namen.'
+        too_long: 'Der Name darf höchstens {{ limit }} Zeichen lang sein.'
