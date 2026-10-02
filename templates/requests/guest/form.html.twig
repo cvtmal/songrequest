@@ -1,0 +1,54 @@
+{% extends 'requests/guest/layout.html.twig' %}
+
+{% macro field_error_attrs(field, id) %}
+    {%- if not field.vars.valid %} aria-invalid="true" aria-describedby="{{ id }}-error"{% endif -%}
+{% endmacro %}
+
+{% macro field_errors(field, id) %}
+    {%- if not field.vars.valid -%}
+        <div id="{{ id }}-error" class="form-error">
+            {{- field_errors(field)|join(' ') -}}
+        </div>
+    {%- endif -%}
+{% endmacro %}
+
+{% block content %}
+    <div class="stack-lg">
+        <h1 class="display">{{ 'guest.form.heading'|trans }}</h1>
+
+        <form method="post" action="{{ path('guest_request', {slug: event.slug}) }}" class="stack">
+            {% if form.vars.errors|length > 0 %}
+                <div class="form-error" role="alert">
+                    {{- field_errors(form)|join(' ') -}}
+                </div>
+            {% endif %}
+
+            <div class="field field-lg">
+                <label for="g-title">{{ 'guest.form.title_label'|trans }}</label>
+                <input id="g-title" name="{{ field_name(form.title) }}" value="{{ field_value(form.title) }}" class="input"
+                    placeholder="{{ 'guest.form.title_placeholder'|trans }}" required maxlength="200"
+                    {{- _self.field_error_attrs(form.title, 'g-title') }}>
+                {{ _self.field_errors(form.title, 'g-title') }}
+            </div>
+            <div class="field field-lg">
+                <label for="g-artist">{{ 'guest.form.artist_label'|trans }}</label>
+                <input id="g-artist" name="{{ field_name(form.artist) }}" value="{{ field_value(form.artist) }}" class="input"
+                    placeholder="{{ 'guest.form.artist_placeholder'|trans }}" maxlength="200"
+                    {{- _self.field_error_attrs(form.artist, 'g-artist') }}>
+                {{ _self.field_errors(form.artist, 'g-artist') }}
+            </div>
+            <div class="field field-lg">
+                <label for="g-nick">{{ 'guest.form.nickname_label'|trans }} <span class="field-optional">{{ 'guest.form.nickname_optional'|trans }}</span></label>
+                <input id="g-nick" name="{{ field_name(form.nickname) }}" value="{{ field_value(form.nickname) }}" class="input"
+                    placeholder="{{ 'guest.form.nickname_placeholder'|trans({dj: dj}) }}" maxlength="50"
+                    {{- _self.field_error_attrs(form.nickname, 'g-nick') }}>
+                {{ _self.field_errors(form.nickname, 'g-nick') }}
+            </div>
+
+            {{ form_widget(form._token) }}
+
+            <button type="submit" class="btn btn-primary btn-touch btn-lg btn-wide">{{ 'guest.form.submit'|trans }}</button>
+            <div class="hint hint-center">{{ 'guest.form.hint'|trans({max: max_per_guest}) }}</div>
+        </form>
+    </div>
+{% endblock %}

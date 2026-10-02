@@ -1,0 +1,18 @@
+{% extends 'requests/guest/layout.html.twig' %}
+{% import '_macros/icons.html.twig' as icons %}
+
+{% block content %}
+    <div class="stack-xl state-sent">
+        <div class="confirm-mark">{{ icons.icon('check', 28, 18) }}</div>
+        <div class="stack-sm">
+            <h1 class="display">{{ 'guest.sent.heading'|trans }}</h1>
+            {% if title %}
+                <p class="lede">{{ 'guest.sent.text_with_title'|trans({title: title, dj: dj}) }}</p>
+            {% else %}
+                <p class="lede">{{ 'guest.sent.text'|trans({dj: dj}) }}</p>
+            {% endif %}
+        </div>
+
+        <a class="btn btn-secondary btn-touch btn-tall btn-wide" href="{{ path('guest_request', {slug: event.slug}) }}">{{ 'guest.sent.again'|trans }}</a>
+    </div>
+{% endblock %}

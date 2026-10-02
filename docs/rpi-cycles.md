@@ -68,7 +68,7 @@ These came up while mapping the PRD onto the module rules in `CLAUDE.md`. Each m
 2. **Tips vs Billing (#26–#28).** `Tips` needs "DJ is on a paid plan" (TI-3) and Stripe webhooks (`account.updated`, `checkout.session.completed` on connected accounts), but may not depend on `Billing`. Decide where the webhook endpoint and `stripe_events` live (`Billing`, `Shared`, or per-module endpoints) in #19, with #26–#28 in mind.
 3. **`request_votes` vs `requests.guest_token` (#1).** The PRD (§10) leaves this to Phase 1. Per-guest caps, "my requests" (GR-8) and blocking need to know which guest asked for which song. **Settled in #1:** `request_votes` (one row per accepted submission, with `guest_id`, the nickname and copies of `event_id`/`account_id`) is the only record of who asked for what; `requests` has no guest column. `guests` has its own UUID `id`, and the cookie value lives in `guests.token`.
 4. **Scheduled jobs (#13).** EV-8 auto-close is the first scheduled task; #15 retention and maybe #21 grace-period fallback follow. Pick one mechanism (Symfony Scheduler on the worker vs host cron calling `bin/console`) in #13 and reuse it.
-5. **Translation keys from day one (#3).** R1 templates should use translation keys with German (or the Q10 default) as the only catalogue, so #9 and #22 don't have to rewrite every template.
+5. **Translation keys from day one (#3).** R1 templates should use translation keys with German (or the Q10 default) as the only catalogue, so #9 and #22 don't have to rewrite every template. **Settled in #3:** German only, ICU messages in `translations/messages+intl-icu.de.yaml`; Q10 stays open for #22.
 6. **Design references.** `templates/design/` already holds static mockups (`guest`, `dj_queue`, `events`, `event_settings`, `auth`, `plan`, `get_paid`, `index`). Each UI cycle's research should start from the matching mockup.
 
 ## R1 Gig-ready (roadmap Phase 1)
@@ -104,6 +104,7 @@ Goal: the owner uses it at a real gig. One seeded DJ, no payments.
 - Dark, high-contrast, ≥ 44 px tap targets, small page weight (GR-6, NFR accessibility). Start from `templates/design/guest.html.twig`.
 - Translation keys from the start (decision 5).
 - Done when: application tests with an `asGuest()` helper cover success, 422, cooldown, cap, duplicate, muted and closed paths.
+- **Outcome (2026-10-02):** the `guest_token` comes from the targeted `GuestTokenValueResolver` (pinned with `#[ValueResolver]`) plus `GuestTokenCookieListener`, in the new layers `ValueResolver` and `EventListener`; a cookie that is not a UUID is reissued. A successful submit redirects (303) to a `UriSigner`-signed `/r/{slug}/sent?title=…`, so the success page repeats the title without a session; an unsigned or tampered link shows the page without the title. Domain exceptions map to German messages with 422; a closed or stopped event shows no form, and a POST to it gets 422. Guest pages use the CSS-only `guest` importmap entry and no Google Fonts. `default_locale: de` with the `messages+intl-icu` and `validators` catalogues. `SYMFONY_TRUSTED_PROXIES=private_ranges` is tracked in `.env`; #7 must make nginx overwrite `X-Forwarded-For` in production, or any client can spoof its IP past AS-7.
 
 ### 4. `dj-login`
 

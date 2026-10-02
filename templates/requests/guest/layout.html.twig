@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{# Guest pages: CSS only and no third-party fonts, to stay light and private (GR-6). #}
+{% block fonts %}{% endblock %}
+{% block importmap %}{{ importmap('guest') }}{% endblock %}
+{% block body_class %}glow{% endblock %}
+{% block title %}{{ 'guest.page_title'|trans({dj: dj}) }}{% endblock %}
+
+{% block body %}
+    <main class="page page-wide">
+        <div class="page-kicker">{{ dj }} · {{ event.name }}</div>
+
+        {% block content %}{% endblock %}
+    </main>
+{% endblock %}

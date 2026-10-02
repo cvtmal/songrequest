@@ -1,0 +1,8 @@
+song_request:
+    title:
+        not_blank: 'Gib zuerst einen Songtitel ein.'
+        too_long: 'Der Titel darf höchstens {{ limit }} Zeichen lang sein.'
+    artist:
+        too_long: 'Der Interpret darf höchstens {{ limit }} Zeichen lang sein.'
+    nickname:
+        too_long: 'Der Name darf höchstens {{ limit }} Zeichen lang sein.'

@@ -1,0 +1,25 @@
+guest:
+    page_title: '{dj} · Songwunsch'
+    form:
+        heading: 'Was soll ich als Nächstes spielen?'
+        title_label: 'Song'
+        title_placeholder: 'z. B. Dreams'
+        artist_label: 'Interpret'
+        artist_placeholder: 'z. B. Fleetwood Mac'
+        nickname_label: 'Dein Name'
+        nickname_optional: '· optional'
+        nickname_placeholder: 'Damit {dj} dich grüssen kann'
+        submit: 'Wunsch senden'
+        hint: 'Bis zu {max, plural, one {# Wunsch} other {# Wünsche}} heute Abend'
+    closed:
+        title: 'Wünsche sind gerade geschlossen'
+        text: '{dj} nimmt gerade keine Wünsche an. Geniess das Set!'
+    error:
+        cooldown: 'Kurz durchatmen: Dein nächster Wunsch geht in {minutes, plural, one {# Minute} other {# Minuten}}.'
+        limit: 'Das waren deine {max} Wünsche für heute Abend.'
+        ip_limit: 'Gerade kommen zu viele Wünsche aus diesem Netzwerk. Versuch es später nochmal.'
+    sent:
+        heading: 'Wunsch gesendet!'
+        text_with_title: '„{title}“ ist in der Queue von {dj}. Weitertanzen!'
+        text: 'Dein Wunsch ist in der Queue von {dj}. Weitertanzen!'
+        again: 'Noch einen Wunsch senden'

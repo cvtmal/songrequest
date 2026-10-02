@@ -1,0 +1,8 @@
+{% extends 'requests/guest/layout.html.twig' %}
+
+{% block content %}
+    <div class="stack-sm state-closed">
+        <h2 class="closed-title">{{ 'guest.closed.title'|trans }}</h2>
+        <p class="lede text-muted">{{ 'guest.closed.text'|trans({dj: dj}) }}</p>
+    </div>
+{% endblock %}

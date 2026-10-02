@@ -62,6 +62,22 @@ final class ClassModifiersTest extends ArchitectureRules
             ->because('Each business error is one concrete type with named constructors.');
     }
 
+    public function test_value_resolvers_are_final(): Rule
+    {
+        return PHPat::rule()
+            ->classes(self::layer('ValueResolver'))
+            ->should()->beFinal()
+            ->because('Resolvers are framework extension points, wired by attribute.');
+    }
+
+    public function test_event_listeners_are_final(): Rule
+    {
+        return PHPat::rule()
+            ->classes(self::layer('EventListener'))
+            ->should()->beFinal()
+            ->because('Listeners are wired by attribute, not inherited.');
+    }
+
     public function test_entities_are_not_final(): Rule
     {
         return PHPat::rule()

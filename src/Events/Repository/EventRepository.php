@@ -17,4 +17,18 @@ class EventRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Event::class);
     }
+
+    /**
+     * Fetch-joins the account, so the guest page gets the DJ's stage name without a second query.
+     */
+    public function findOneBySlug(string $slug): ?Event
+    {
+        return $this->createQueryBuilder('e')
+            ->addSelect('a')
+            ->join('e.account', 'a')
+            ->where('e.slug = :slug')
+            ->setParameter('slug', $slug)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

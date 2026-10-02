@@ -24,6 +24,8 @@ Code lives in `src/<Module>/<Layer>/`. Modules: `Accounts`, `Events`, `Requests`
 | `Repository` | Doctrine repositories (also the read side) |
 | `Exception` | Business errors of the module |
 | `Form` | Form types and form data classes |
+| `ValueResolver` | Controller argument resolvers |
+| `EventListener` | Kernel and Doctrine event listeners |
 
 Do not invent new layer names without updating `tests/Architecture/` — the rules match these folder names.
 
@@ -37,6 +39,8 @@ Do not invent new layer names without updating `tests/Architecture/` — the rul
 | Exception | yes (abstract bases excepted) | — | extends `App\Shared\Exception\DomainException` |
 | Entity | **no** | **no** | Doctrine proxies and hydrates them |
 | Repository | — | — | extends `ServiceEntityRepository` |
+| ValueResolver | yes | — | |
+| EventListener | yes | — | |
 
 Anything else (services, value objects, form types) is `final` by default.
 
