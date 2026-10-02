@@ -32,8 +32,8 @@ Artifacts land in `.rpi-tracking/{research,plans,changes,reviews}/<date>/<slug>-
 | 4 | `dj-login` | R1 | AC-2 | 1 | — | ✅ Done |
 | 5 | `event-lifecycle-qr` | R1 | EV-1 (minimal), EV-2, EV-3 | 4 | — | ✅ Done |
 | 6 | `dj-queue` | R1 | DQ-1–DQ-7, AS-6 (block), DQ-4 | 2, 4, 5 | — | ✅ Done |
-| 7 | `prod-deploy` | R5 | NFR security, OP-2 | 6 | Q13 | Research |
-| 8 | `prod-backups-monitoring` | R5 | NFR availability, OP-3 | 7 | Q13 | Research |
+| 7 | `prod-deploy` | R5 | NFR security, OP-2 | 6 | ~~Q13~~ (pre-launch: cyon + Neon) | 🟡 Live, rest open (see #7) |
+| 8 | `prod-backups-monitoring` | R5 | NFR availability, OP-3 | 7 | Backup target | Research |
 | 9 | `i18n-foundation` | R2 | NO-1 (language), NFR localization | 6 | Q10 (default language only) | Research |
 | 10 | `dj-signup-verify` | R2 | AC-1, NO-1 | 9 | — | Research |
 | 11 | `tenant-isolation` | R2 | AC-5 | 10 | — | Research |
@@ -56,7 +56,7 @@ Artifacts land in `.rpi-tracking/{research,plans,changes,reviews}/<date>/<slug>-
 | 28 | `tip-confirmation` | R4 | TI-6, TI-10, TI-11, DQ-1/DQ-2 (tip marks) | 27 | Q6, Q8 | Research |
 | 29 | `event-summary` | R4 | DQ-9 | 28 | — | Plan |
 
-**Milestones.** After #6 the app is gig-ready for the owner (R1). After #8 it runs on the VPS with tested backups (R5), which is required before any other DJ gets access. After #17 invited beta DJs can use it (R2). After #25 it can launch publicly (R3). After #29 tips are live (R4).
+**Milestones.** After #6 the app is gig-ready for the owner (R1). After #8 it runs on the pre-launch host (cyon + Neon, see #7) with tested backups (R5), which is required before any other DJ gets access. After #17 invited beta DJs can use it (R2). After #25 it can launch publicly (R3). After #29 tips are live (R4).
 
 **What can move.** #7–#8 can run right after #6 (the roadmap allows it) or be deferred until just before #17 if you want to test R1 locally first; they must not move after R2's release. #16, #17 and #25 have no cycle depending on them and can slip. #23 and #24 are independent of each other.
 
@@ -138,18 +138,32 @@ Required before R2 goes to other DJs.
 
 ### 7. `prod-deploy`
 
-- VPS setup notes and scripts: SSH keys only, firewall 22/80/443, unattended upgrades, Docker.
-- Prod Compose override: prod `php.ini`/opcache, FPM children sized for the VPS RAM, Docker log rotation, nginx TLS with Let's Encrypt, HSTS, the `worker` service running in prod.
-- `make deploy` (ssh → pull → build → migrate → up -d → cache:warmup) and a deploy freeze note for Fri 16:00 – Sun 06:00.
-- Check that failed Messenger messages land in `failed` and that retry works (OP-2).
-- Gate: Q13 (provider).
-- Done when: the app answers on HTTPS at the production host and a deploy runs end to end.
+**Pre-launch host (decided 2026-10-02, answers Q13 until launch).** The owner's existing cyon shared hosting (Switzerland, no extra cost) runs the PHP app; Postgres is Neon's free plan (project `sparkling-lab-16265933`, branch `production`, AWS Frankfurt, Postgres 18). The ~$5 VPS with Docker Compose stays the plan for public launch (R3), so the VPS items below are deferred, not dropped.
+
+Why not the VPS now: zero cost while pre-launch. Why Neon: cyon webhosting only offers MariaDB 10.6, and the app relies on Postgres (partial unique index with `ON CONFLICT … WHERE … RETURNING`, regexp generated columns).
+
+**Done (2026-10-02):**
+- Live at https://musikwunsch.ch (cyon Let's Encrypt). Checkout in `~/public_html/musikwunsch/songrequest`; the domain's docroot `musikwunsch/public` is a symlink to the app's `public/`. Repo files and `.env.local` are not reachable over HTTP.
+- PHP 8.5 via `php85` (plain `php` is 8.3), `pdo_pgsql`/`pgsql` enabled with `selectorctl`, Composer at `~/bin/composer.phar`.
+- `public/.htaccess` with the `symfony/apache-pack` front controller rules.
+- Prod secrets only in the server's `.env.local` (`APP_ENV=prod`, own `APP_SECRET`, `MAILER_DSN=null://null`). `DATABASE_URL` uses Neon's direct host with the endpoint ID in the password (`endpoint=<ep-id>;<password>`) because cyon's libpq 13 has no SNI; it must not be percent-encoded, or Symfony reads `%3D` as a container parameter.
+- Manual deploy: Actions → **Deploy** (`.github/workflows/deploy.yaml`, `workflow_dispatch` on `main`). It requires a green CI run for the commit, SSHes in with a key that `authorized_keys` locks to `bin/deploy` (`command=…,restrict`), checks the server landed on that commit, then calls `/health`. Secrets: `CYON_SSH_KEY`, `CYON_SSH_HOST`, `CYON_SSH_USER`, `CYON_KNOWN_HOSTS`.
+- `bin/deploy` (runs on the server): `git pull --ff-only` → `composer install --no-dev` → migrate → `asset-map:compile` → `cache:clear`, and resets the regenerated `config/reference.php` so pulls fast-forward.
+
+**Still open:**
+- Deploy freeze note for Fri 16:00 – Sun 06:00.
+- HSTS header.
+- Messenger in prod: cyon allows no long-running worker, and a per-minute `messenger:consume` cron would keep Neon awake around the clock and exhaust its 100 CU-hours/month. Nothing is routed `async` yet (no mail is sent). Decide before #10 (signup mails): route mail `sync` in prod or a sparse cron. Then check that failed messages land in `failed` and retry works (OP-2).
+- Prod logs go to `php://stderr` (`config/packages/monolog.yaml`); consider `var/log/prod.log` on cyon.
+- Local and CI run Postgres 17, Neon runs 18; move `compose.yaml` to `postgres:18`.
+- Deferred to the launch VPS: SSH keys only, firewall 22/80/443, unattended upgrades, Docker, prod Compose override (php.ini/opcache, FPM children, log rotation, nginx TLS), `make deploy`.
+- Done when: ✅ the app answers on HTTPS at the production host; a deploy runs end to end through the workflow.
 
 ### 8. `prod-backups-monitoring`
 
-- Nightly `pg_dump` to off-server storage, a documented restore, and one restore actually tested.
-- Sentry for PHP errors, an external uptime monitor on `/health` (OP-3).
-- Gate: Q13 (backup target).
+- Nightly `pg_dump` of Neon to off-server storage, a documented restore, and one restore actually tested. cyon has no `pg_dump`/`psql`, so run it from a scheduled GitHub Actions job (or another host) and pick the storage target (gate). Neon free only keeps a 6-hour restore window.
+- Sentry for PHP errors, an external uptime monitor (OP-3). `/health` queries the database, so a frequent monitor keeps Neon from scaling to zero and eats CU-hours: check `/health` sparingly or add a check that skips the database.
+- Gate: backup storage target.
 - Done when: a restore from last night's dump into a fresh database works, and a test error shows up in Sentry.
 
 ## R2 Multi-DJ (roadmap Phase 2)

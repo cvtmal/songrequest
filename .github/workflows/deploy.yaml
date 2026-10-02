@@ -1,0 +1,51 @@
+name: Deploy
+
+# Manual only: Actions → Deploy → Run workflow (on main).
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    environment:
+      name: production
+      url: https://musikwunsch.ch
+    steps:
+      - name: Require a green CI run for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          conclusion=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yaml --commit "$GITHUB_SHA" \
+            --json conclusion --jq '.[0].conclusion // "none"')
+          echo "CI for $GITHUB_SHA: $conclusion"
+          test "$conclusion" = success
+
+      - name: Set up SSH
+        env:
+          SSH_KEY: ${{ secrets.CYON_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.CYON_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      # The key is locked to bin/deploy on the server, so no command is passed.
+      - name: Deploy
+        env:
+          SSH_TARGET: ${{ secrets.CYON_SSH_USER }}@${{ secrets.CYON_SSH_HOST }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes "$SSH_TARGET" | tee deploy.log
+          grep -qx "DEPLOYED_SHA=$GITHUB_SHA" deploy.log || { echo "Server is not on $GITHUB_SHA (did main move?)"; exit 1; }
+
+      - name: Health check
+        run: curl -fsS --retry 3 --retry-delay 5 https://musikwunsch.ch/health
