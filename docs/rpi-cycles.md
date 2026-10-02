@@ -19,7 +19,8 @@ Artifacts land in `.rpi-tracking/{research,plans,changes,reviews}/<date>/<slug>-
 
 ### Important
 - in /rpi cycles never ask the owner to make a decision; apply your own recommendation and record it in the research. The owner will always follow your recommendation.
-- every full cycle ends with exactly one commit, then push to main. That way we can save opening a PR and squash-merging, and the commit message is the cycle slug. If a cycle needs rework, the rework goes in a new commit on top of the previous one.
+- every full cycle ends with exactly one commit, then push to main. That way we can save opening a PR and squash-merging, and the commit message is the cycle slug.
+- If a cycle needs rework, the rework goes in a new commit on top of the previous one.
 - make sure the application stays reachable for the owner via cloudflared tunnel --url http://localhost:8080
 
 | # | Slug | Release | PRD IDs | Depends on | Gate | Start at |
@@ -93,6 +94,7 @@ Goal: the owner uses it at a real gig. One seeded DJ, no payments.
 - Event not open / stopped → domain exception (GR-5 server side).
 - No device IDs, fingerprinting or SMS (AS-9).
 - Done when: unit tests for each rule, plus an integration test that fires concurrent submits and shows caps and merges hold.
+- **Outcome (2026-10-02):** no RateLimiter. The handler locks the event row (`PESSIMISTIC_WRITE`) and counts cooldown, cap and IP limits in SQL over `request_votes`, so every check sees each earlier accepted vote. Migration `Version20261001130000` adds `request_votes.ip_address` (`VARCHAR(45) NULL`). Limits are the `requests.cooldown_seconds`, `requests.max_per_guest` and `requests.max_per_ip_per_hour` container parameters. #3 maps these exceptions from `App\Requests\Exception` to messages: `EventNotFound`, `EventClosed`, `RequestsStopped`, `GuestRequestLimitReached`, `RequestCooldownActive` (`getSecondsLeft()`) and `IpRequestLimitReached`. Muted guests and a guest re-requesting their own queued song return success with nothing written. The handler creates the `guests` row on first submit, so #3's cookie listener only sets the cookie. #3 must configure trusted proxies before it passes `Request::getClientIp()`; otherwise every guest shares the proxy's IP and AS-7 caps the whole event at 30/h.
 
 ### 3. `guest-request-page`
 

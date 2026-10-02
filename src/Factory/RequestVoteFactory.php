@@ -26,6 +26,7 @@ final class RequestVoteFactory extends PersistentObjectFactory
             'request' => SongRequestFactory::new(),
             'guest' => GuestFactory::new(),
             'nickname' => null,
+            'ipAddress' => null,
         ];
     }
 }

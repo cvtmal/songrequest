@@ -16,7 +16,8 @@ use Zenstruck\Foundry\Attribute\ResetDatabase;
 #[ResetDatabase]
 final class CoreSchemaMigrationTest extends KernelTestCase
 {
-    private const VERSION = 'DoctrineMigrations\Version20261001120000';
+    private const CORE_VERSION = 'DoctrineMigrations\Version20261001120000';
+    private const IP_ADDRESS_VERSION = 'DoctrineMigrations\Version20261001130000';
 
     public function test_mapping_is_in_sync_with_migrated_schema(): void
     {
@@ -25,13 +26,20 @@ final class CoreSchemaMigrationTest extends KernelTestCase
 
     public function test_down_then_up_restores_the_schema(): void
     {
-        $this->executeMigration('--down');
+        $this->executeMigration(self::IP_ADDRESS_VERSION, '--down');
+        self::assertFalse($this->requestVotesHasIpAddress());
+
+        $this->executeMigration(self::CORE_VERSION, '--down');
         self::assertFalse($this->connection()->createSchemaManager()->tablesExist(['accounts']));
 
-        $this->executeMigration('--up');
+        $this->executeMigration(self::CORE_VERSION, '--up');
         self::assertTrue($this->connection()->createSchemaManager()->tablesExist([
             'accounts', 'users', 'events', 'guests', 'requests', 'request_votes', 'account_guest_blocks',
         ]));
+
+        $this->executeMigration(self::IP_ADDRESS_VERSION, '--up');
+        self::assertTrue($this->requestVotesHasIpAddress());
+
         $this->assertSchemaIsValid();
     }
 
@@ -43,11 +51,11 @@ final class CoreSchemaMigrationTest extends KernelTestCase
         self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
     }
 
-    private function executeMigration(string $direction): void
+    private function executeMigration(string $version, string $direction): void
     {
         $tester = $this->application();
         $tester->run(
-            ['command' => 'doctrine:migrations:execute', 'versions' => [self::VERSION], $direction => true],
+            ['command' => 'doctrine:migrations:execute', 'versions' => [$version], $direction => true],
             ['interactive' => false],
         );
 
@@ -64,6 +72,11 @@ final class CoreSchemaMigrationTest extends KernelTestCase
         $application->setAutoExit(false);
 
         return new ApplicationTester($application);
+    }
+
+    private function requestVotesHasIpAddress(): bool
+    {
+        return $this->connection()->createSchemaManager()->introspectTable('request_votes')->hasColumn('ip_address');
     }
 
     private function connection(): Connection

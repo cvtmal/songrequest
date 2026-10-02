@@ -17,4 +17,9 @@ class GuestRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Guest::class);
     }
+
+    public function findOneByToken(string $token): ?Guest
+    {
+        return $this->findOneBy(['token' => $token]);
+    }
 }

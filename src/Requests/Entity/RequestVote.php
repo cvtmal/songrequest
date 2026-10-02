@@ -22,6 +22,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'idx_request_votes_request_id', columns: ['request_id'])]
 #[ORM\Index(name: 'idx_request_votes_guest_id', columns: ['guest_id'])]
 #[ORM\Index(name: 'idx_request_votes_event_id_guest_id_created_at', columns: ['event_id', 'guest_id', 'created_at'])]
+#[ORM\Index(name: 'idx_request_votes_event_id_ip_address_created_at', columns: ['event_id', 'ip_address', 'created_at'])]
 #[ORM\UniqueConstraint(name: 'uk_request_votes_request_guest', columns: ['request_id', 'guest_id'])]
 class RequestVote
 {
@@ -48,13 +49,16 @@ class RequestVote
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $nickname;
 
+    #[ORM\Column(length: 45, nullable: true)]
+    private ?string $ipAddress;
+
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $updatedAt;
 
-    public function __construct(SongRequest $request, Guest $guest, ?string $nickname)
+    public function __construct(SongRequest $request, Guest $guest, ?string $nickname, ?string $ipAddress)
     {
         $this->id = EntityId::generate();
         $this->account = $request->getAccount();
@@ -62,6 +66,7 @@ class RequestVote
         $this->request = $request;
         $this->guest = $guest;
         $this->nickname = $nickname;
+        $this->ipAddress = $ipAddress;
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
     }
@@ -96,6 +101,11 @@ class RequestVote
     public function getNickname(): ?string
     {
         return $this->nickname;
+    }
+
+    public function getIpAddress(): ?string
+    {
+        return $this->ipAddress;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

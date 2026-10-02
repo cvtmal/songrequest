@@ -7,6 +7,10 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    # Anti-spam starting values (PRD AS-2, AS-3, AS-7). Q4 may move them to per-event settings (#13).
+    requests.cooldown_seconds: 300   # AS-2: per guest, per event
+    requests.max_per_guest: 3        # AS-3: per guest, per event, whatever the request's status
+    requests.max_per_ip_per_hour: 30 # AS-7: accepted submissions per IP, per event
 
 services:
     # default configuration for services in *this* file
