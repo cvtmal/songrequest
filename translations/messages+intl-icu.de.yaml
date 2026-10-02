@@ -23,3 +23,19 @@ guest:
         text_with_title: '„{title}“ ist in der Queue von {dj}. Weitertanzen!'
         text: 'Dein Wunsch ist in der Queue von {dj}. Weitertanzen!'
         again: 'Noch einen Wunsch senden'
+auth:
+    login:
+        page_title: 'Anmelden · Song Request'
+        heading: 'Willkommen zurück'
+        lede: 'Melde dich an, um deine Queue zu sehen.'
+        email_label: 'E-Mail'
+        email_placeholder: 'du@example.ch'
+        password_label: 'Passwort'
+        remember_me: 'Angemeldet bleiben'
+        submit: 'Anmelden'
+dj:
+    home:
+        page_title: '{dj} · Song Request'
+        heading: 'Hallo {dj}'
+        coming_soon: 'Hier erscheinen bald deine Events.'
+        logout: 'Abmelden'

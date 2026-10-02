@@ -11,6 +11,7 @@ use App\Events\Entity\Event;
 use App\Events\Repository\EventRepository;
 use App\Story\AppStory;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Zenstruck\Foundry\Attribute\ResetDatabase;
 
 #[ResetDatabase]
@@ -33,5 +34,17 @@ final class AppStoryTest extends KernelTestCase
         self::assertSame(Event::STATUS_OPEN, $event->getStatus());
         self::assertSame('demo', $event->getSlug());
         self::assertSame($user->getAccount()->getId(), $event->getAccount()->getId());
+    }
+
+    public function test_seeded_dj_password_is_password(): void
+    {
+        AppStory::load();
+
+        $user = AppStory::get('user');
+        $hasherFactory = self::getContainer()->get(PasswordHasherFactoryInterface::class);
+        self::assertInstanceOf(User::class, $user);
+        self::assertInstanceOf(PasswordHasherFactoryInterface::class, $hasherFactory);
+        self::assertSame('dj@example.com', $user->getEmail());
+        self::assertTrue($hasherFactory->getPasswordHasher(User::class)->verify($user->getPasswordHash(), 'password'));
     }
 }

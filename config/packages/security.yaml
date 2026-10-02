@@ -5,7 +5,10 @@ security:
 
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        # No `property`: UserRepository::loadUserByIdentifier() lowercases the email first.
+        users:
+            entity:
+                class: App\Accounts\Entity\User
 
     firewalls:
         dev:
@@ -15,20 +18,33 @@ security:
         health:
             pattern: ^/health$
             security: false
+        # Guests never log in and never get a session; guest_token is their only cookie.
+        guest:
+            pattern: ^/r/
+            security: false
         main:
             lazy: true
-            provider: users_in_memory
-
-            # Activate different ways to authenticate:
-            # https://symfony.com/doc/current/security.html#the-firewall
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
+            provider: users
+            form_login:
+                login_path: login
+                check_path: login
+                default_target_path: dj_home
+                enable_csrf: true
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 2592000 # 30 days, renewed on every remembered login
+            # Symfony's defaults, written out: a DJ who forgot the password minutes before a gig must not wait long (owner, 2026-10-02).
+            login_throttling:
+                max_attempts: 5
+                interval: '1 minute'
+            logout:
+                path: /logout
+                target: login
+                enable_csrf: true
 
     # Note: Only the *first* matching rule is applied
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/dj, roles: ROLE_USER }
 
 when@test:
     security:

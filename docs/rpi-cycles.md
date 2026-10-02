@@ -28,8 +28,8 @@ Artifacts land in `.rpi-tracking/{research,plans,changes,reviews}/<date>/<slug>-
 | 0 | `songrequest-base` | R0 | Phase 0 | — | — | ✅ Done |
 | 1 | `core-schema` | R1 | §10 (R1 tables), AS-8 (constraints) | 0 | — | ✅ Done |
 | 2 | `submit-song-request` | R1 | AS-2, AS-3, AS-5, AS-6 (drop), AS-7, AS-8, AS-9 | 1 | — | ✅ Done |
-| 3 | `guest-request-page` | R1 | GR-1–GR-6, AS-1 | 2 | — | Research |
-| 4 | `dj-login` | R1 | AC-2 | 1 | — | Research |
+| 3 | `guest-request-page` | R1 | GR-1–GR-6, AS-1 | 2 | — | ✅ Done |
+| 4 | `dj-login` | R1 | AC-2 | 1 | — | ✅ Done |
 | 5 | `event-lifecycle-qr` | R1 | EV-1 (minimal), EV-2, EV-3 | 4 | — | Research |
 | 6 | `dj-queue` | R1 | DQ-1–DQ-7, AS-6 (block), DQ-4 | 2, 4, 5 | — | Research |
 | 7 | `prod-deploy` | R5 | NFR security, OP-2 | 6 | Q13 | Research |
@@ -112,6 +112,7 @@ Goal: the owner uses it at a real gig. One seeded DJ, no payments.
 - A console command to create the seeded DJ user with a hashed password (signup arrives in #10).
 - Start from `templates/design/auth.html.twig`.
 - Done when: application tests for login, bad password, throttling, and that DJ routes redirect anonymous users.
+- **Outcome (2026-10-02):** `/login` lives in `Accounts`; the `/dj` landing page (`dj_home`) lives in `Events`, and #5 turns it into the event list. `^/dj` requires `ROLE_USER`. A `guest` firewall (`^/r/`, `security: false`) keeps guest pages session-free. Login ignores email case through `UserRepository::loadUserByIdentifier()`. Throttling allows 5 failed attempts per minute per email+IP and 25 per minute per IP, stored in `cache.rate_limiter`. Remember-me is ticked by default: a 30-day rolling signature cookie that a password change invalidates. Logout is a CSRF-protected POST. The new `Console` layer holds `app:create-dj <email> <stage-name>`, which dispatches `CreateDjAccount` (reusable by #10); a duplicate email surfaces as `EmailAlreadyRegistered`, caught from `uk_users_email`. The seed DJ logs in as `dj@example.com` / `password`. #7 must set a real `APP_SECRET` (it signs remember-me cookies) and persistent session storage. #16 adds a `UserChecker` on `main`.
 
 ### 5. `event-lifecycle-qr`
 

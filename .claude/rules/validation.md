@@ -3,6 +3,7 @@ paths:
   - "src/**/Form/**/*.php"
   - "src/**/Controller/**/*.php"
   - "src/**/CommandHandler/**/*.php"
+  - "src/**/Console/**/*.php"
   - "templates/**/*.twig"
 ---
 
@@ -22,6 +23,7 @@ Validation is split across three layers. Put each check in the first layer that 
   ```
 
 - Only after `isValid()` does the controller build a command from the data class.
+- Console commands have no form: validate each argument with `ValidatorInterface::validate($value, [constraints])` and return `Command::FAILURE` on violations.
 
 ## 2. Handler (business rules)
 

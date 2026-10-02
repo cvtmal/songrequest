@@ -78,6 +78,14 @@ final class ClassModifiersTest extends ArchitectureRules
             ->because('Listeners are wired by attribute, not inherited.');
     }
 
+    public function test_console_commands_are_final(): Rule
+    {
+        return PHPat::rule()
+            ->classes(self::layer('Console'))
+            ->should()->beFinal()
+            ->because('Console commands are entry points, not extension points.');
+    }
+
     public function test_entities_are_not_final(): Rule
     {
         return PHPat::rule()

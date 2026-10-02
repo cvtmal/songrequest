@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'auth.login.page_title'|trans }}{% endblock %}
+{% block body_class %}glow{% endblock %}
+
+{% block body %}
+    <main class="page page-wide auth">
+        <div class="stack-sm">
+            <h1 class="display">{{ 'auth.login.heading'|trans }}</h1>
+            <p class="lede">{{ 'auth.login.lede'|trans }}</p>
+        </div>
+
+        {# data-turbo="false": form_login answers with redirects; a full page load picks up the fresh cookies without relying on how Turbo follows a 302.
+           No data-controller="csrf-protection": mixing in the JS double-submit would make a later no-JS login fail the same-origin check. #}
+        <form method="post" action="{{ path('login') }}" class="stack" data-turbo="false">
+            {% if error %}
+                <div class="form-error" role="alert">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+            {% endif %}
+
+            <div class="field field-lg">
+                <label for="a-email">{{ 'auth.login.email_label'|trans }}</label>
+                <input id="a-email" name="_username" type="email" class="input" value="{{ last_username }}"
+                    placeholder="{{ 'auth.login.email_placeholder'|trans }}" autocomplete="email" required autofocus>
+            </div>
+            <div class="field field-lg">
+                <label for="a-pw">{{ 'auth.login.password_label'|trans }}</label>
+                <input id="a-pw" name="_password" type="password" class="input" autocomplete="current-password" required>
+            </div>
+            <label class="checkbox"><input type="checkbox" name="_remember_me" checked> {{ 'auth.login.remember_me'|trans }}</label>
+
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+            <button type="submit" class="btn btn-primary btn-touch btn-lg btn-wide">{{ 'auth.login.submit'|trans }}</button>
+        </form>
+    </main>
+{% endblock %}

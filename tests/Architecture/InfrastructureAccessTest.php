@@ -20,6 +20,15 @@ final class InfrastructureAccessTest extends ArchitectureRules
             ->because('Writes go through command handlers; reads go through repositories.');
     }
 
+    public function test_console_commands_do_not_use_the_entity_manager(): Rule
+    {
+        return PHPat::rule()
+            ->classes(self::layer('Console'))
+            ->shouldNot()->dependOn()
+            ->classes(Selector::classname(EntityManagerInterface::class))
+            ->because('Writes go through command handlers; reads go through repositories.');
+    }
+
     public function test_modules_do_not_depend_on_test_code(): Rule
     {
         return PHPat::rule()

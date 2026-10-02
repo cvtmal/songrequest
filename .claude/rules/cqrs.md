@@ -3,6 +3,7 @@ paths:
   - "src/**/Controller/**/*.php"
   - "src/**/Command/**/*.php"
   - "src/**/CommandHandler/**/*.php"
+  - "src/**/Console/**/*.php"
   - "config/packages/messenger.yaml"
 ---
 
@@ -12,7 +13,7 @@ There is exactly one bus, `command.bus` (default bus, wrapped in a Doctrine tran
 
 ## Writes
 
-1. The controller validates input with a form, then builds a command and dispatches it.
+1. The controller (or console command) validates input, then builds a command and dispatches it.
 2. The handler loads entities, applies business rules, persists.
 3. The transaction middleware flushes and commits; a thrown exception rolls everything back.
 
@@ -29,7 +30,7 @@ There is exactly one bus, `command.bus` (default bus, wrapped in a Doctrine tran
 - Return `void`, or the new entity's ID string when the caller needs it (read it from `HandledStamp`).
 - Throw a `DomainException` subclass for any business-rule violation.
 
-## Controllers
+## Controllers and console commands
 
 - Never call `persist()` / `flush()` and never inject `EntityManagerInterface`.
 - Never call a handler directly; dispatch through `MessageBusInterface`.

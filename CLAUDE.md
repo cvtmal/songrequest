@@ -50,7 +50,7 @@ App: http://localhost (`/health` returns `{"status":"ok"}`). Mail UI: http://loc
 Module-first modular monolith: `src/<Module>/<Layer>/`, namespace `App\<Module>\<Layer>`.
 
 - Modules: `Accounts`, `Events`, `Requests`, `Billing`, `Tips`, plus `Shared` for building blocks.
-- Layers inside a module: `Controller`, `Command` (command DTOs), `CommandHandler`, `Entity`, `Repository`, `Exception`, `Form`, `ValueResolver`, `EventListener`.
+- Layers inside a module: `Controller`, `Command` (command DTOs), `CommandHandler`, `Entity`, `Repository`, `Exception`, `Form`, `ValueResolver`, `EventListener`, `Console` (console commands).
 - Allowed module dependencies (everything may use `Shared`; `Shared` uses no module):
 
   | Module | May depend on |
@@ -61,7 +61,7 @@ Module-first modular monolith: `src/<Module>/<Layer>/`, namespace `App\<Module>\
   | Billing | Accounts |
   | Tips | Requests, Events, Accounts |
 
-- Writes: controller → command → bus → handler. Reads: controller → repository. There is no query bus.
+- Writes: controller or console command → command → bus → handler. Reads: controller → repository. There is no query bus.
 - phpat enforces layers, modifiers and module boundaries during `make phpstan` (rules in `tests/Architecture/`). Details: `.claude/rules/php-architecture.md`, `.claude/rules/cqrs.md`.
 
 ## Validation strategy

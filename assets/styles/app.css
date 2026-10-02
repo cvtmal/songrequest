@@ -193,6 +193,8 @@ a.seg-opt:not([aria-current]):hover { background: color-mix(in srgb, var(--color
 .auth { padding-top: 56px; gap: 28px; }
 .auth-switch { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--color-neutral-400); }
 .auth-switch .btn { font-size: 14px; }
+.checkbox { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; cursor: pointer; }
+.checkbox input { width: 18px; height: 18px; margin: 0; accent-color: var(--color-accent); }
 .back-link { gap: 4px; }
 .event-title { font-size: 20px; }
 .kicker-muted { color: var(--color-neutral-400); }

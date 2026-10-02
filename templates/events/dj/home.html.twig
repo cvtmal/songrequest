@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'dj.home.page_title'|trans({dj: dj}) }}{% endblock %}
+
+{% block body %}
+    <main class="page page-wide">
+        <h1 class="display">{{ 'dj.home.heading'|trans({dj: dj}) }}</h1>
+        <p class="lede">{{ 'dj.home.coming_soon'|trans }}</p>
+
+        <form method="post" action="{{ logout_path() }}" data-turbo="false">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+            <button type="submit" class="btn btn-secondary btn-touch">{{ 'dj.home.logout'|trans }}</button>
+        </form>
+    </main>
+{% endblock %}

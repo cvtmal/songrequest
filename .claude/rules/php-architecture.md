@@ -26,6 +26,7 @@ Code lives in `src/<Module>/<Layer>/`. Modules: `Accounts`, `Events`, `Requests`
 | `Form` | Form types and form data classes |
 | `ValueResolver` | Controller argument resolvers |
 | `EventListener` | Kernel and Doctrine event listeners |
+| `Console` | Console commands (`#[AsCommand]`, invokable) |
 
 Do not invent new layer names without updating `tests/Architecture/` — the rules match these folder names.
 
@@ -41,6 +42,7 @@ Do not invent new layer names without updating `tests/Architecture/` — the rul
 | Repository | — | — | extends `ServiceEntityRepository` |
 | ValueResolver | yes | — | |
 | EventListener | yes | — | |
+| Console | yes | — | invokable, `#[AsCommand]` |
 
 Anything else (services, value objects, form types) is `final` by default.
 
@@ -50,10 +52,12 @@ Anything else (services, value objects, form types) is `final` by default.
 - Handlers never reference controllers.
 - Commands never reference entities or repositories — they carry scalars and IDs.
 - Entities never reference controllers, handlers or commands.
+- Console commands never reference handlers; they dispatch commands.
 
 ## Infrastructure access (checked by `InfrastructureAccessTest`)
 
 - Controllers never use `EntityManagerInterface`.
+- Console commands never use `EntityManagerInterface`.
 - Module code never references `App\Tests`, `App\DataFixtures`, `App\Story` or Foundry.
 
 ## Module dependencies (checked by `ModuleBoundariesTest`)

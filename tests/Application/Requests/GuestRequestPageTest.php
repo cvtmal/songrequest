@@ -10,6 +10,7 @@ use App\Factory\EventFactory;
 use App\Factory\GuestFactory;
 use App\Factory\RequestVoteFactory;
 use App\Factory\SongRequestFactory;
+use App\Factory\UserFactory;
 use App\Tests\Application\InteractsWithGuests;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -84,6 +85,25 @@ final class GuestRequestPageTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(303);
         self::assertSame($issued->getValue(), $this->connection()->fetchOne('SELECT token FROM guests'));
+    }
+
+    public function test_guest_page_sets_no_session_cookie(): void
+    {
+        $client = $this->client();
+        $event = EventFactory::createOne();
+
+        $this->submitRequest($client, $event->getSlug(), 'Mr Brightside');
+
+        self::assertResponseStatusCodeSame(303);
+        self::assertSame([], $this->responseCookiesOtherThanGuestToken($client));
+        self::assertSame(['guest_token'], array_map(static fn ($cookie) => $cookie->getName(), $client->getCookieJar()->all()));
+
+        // Even a logged-in DJ gets no session touched on the guest firewall (security: false).
+        $client->loginUser(UserFactory::createOne(['account' => $event->getAccount()]));
+        $client->request('GET', '/r/'.$event->getSlug());
+
+        self::assertResponseIsSuccessful();
+        self::assertSame([], $this->responseCookiesOtherThanGuestToken($client));
     }
 
     public function test_successful_submit_redirects_to_signed_sent_page(): void
@@ -367,6 +387,16 @@ final class GuestRequestPageTest extends WebTestCase
         }
 
         return null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function responseCookiesOtherThanGuestToken(KernelBrowser $client): array
+    {
+        $names = array_map(static fn (Cookie $cookie) => $cookie->getName(), $client->getResponse()->headers->getCookies());
+
+        return array_values(array_diff($names, ['guest_token']));
     }
 
     private function changeStatus(Event $event, string $status): void

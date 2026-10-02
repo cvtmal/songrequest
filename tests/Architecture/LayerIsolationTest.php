@@ -18,6 +18,15 @@ final class LayerIsolationTest extends ArchitectureRules
             ->because('Controllers dispatch commands on the bus instead of calling handlers.');
     }
 
+    public function test_console_commands_do_not_depend_on_command_handlers(): Rule
+    {
+        return PHPat::rule()
+            ->classes(self::layer('Console'))
+            ->shouldNot()->dependOn()
+            ->classes(self::layer('CommandHandler'))
+            ->because('Console commands dispatch commands on the bus instead of calling handlers.');
+    }
+
     public function test_command_handlers_do_not_depend_on_controllers(): Rule
     {
         return PHPat::rule()

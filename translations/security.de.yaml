@@ -1,0 +1,4 @@
+'Invalid credentials.': 'E-Mail oder Passwort stimmt nicht.'
+'Too many failed login attempts, please try again later.': 'Zu viele Fehlversuche. Versuch es gleich nochmal.'
+'Too many failed login attempts, please try again in %minutes% minute.': 'Zu viele Fehlversuche. Versuch es in einer Minute nochmal.'
+'Too many failed login attempts, please try again in %minutes% minutes.': 'Zu viele Fehlversuche. Versuch es in %minutes% Minuten nochmal.'
