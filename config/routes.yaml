@@ -9,3 +9,10 @@
 
 controllers:
     resource: routing.controllers
+
+# No public homepage until #23 (public-site); send visitors to the DJ area,
+# which itself redirects logged-out visitors to /login.
+home:
+    path: /
+    controller: Symfony\Bundle\FrameworkBundle\Controller\RedirectController
+    defaults: { route: dj_home, permanent: false }
